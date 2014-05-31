@@ -2,127 +2,144 @@
 :prev_link: 00_intro
 :next_link: 02_program_structure
 
-= Values, Types, and Operators =
+= Значения и типы =
 
-[quote, Master Yuan-Ma, The Book of Programming]
+[quote, учитель Юнь-Ма, Книга Программ]
 ____
-Below the surface of the machine, the program moves. Without effort,
-it expands and contracts. In great harmony, electrons scatter and
-regroup. The forms on the monitor are but ripples on the water. The
-essence stays invisibly below.
+За поверхностью машины двигается программа. Без напряжений и
+колебаний, она расширяется и сжимается. В полной гармонии электроны
+разбегаются и перегруппировываются. Фигуры на мониторе -- лишь волны
+на поверхности воды. Суть остается невидимой под ними.
 ____
 
-(((data)))(((bit)))(((memory)))Inside the computer's world,
-there is only data. We can read data, modify data, create new data—but
-anything that isn't data simply does not exist. All this
-data is stored as long sequences of bits, and is thus fundamentally
-alike.
+(((data)))(((bit)))(((memory)))В мире компьютера все -- лишь
+данные. Мы можем читать данные, изменять данные, создавать новые
+данные. Но все, что не является данными, попросту не существует. И все
+яти данные хранятся как длинные цепочки бит, и значт, фундаментально
+являются одной и той же сущностью.
 
-Bits are any kinds of two-valued things, usually described as
-zeroes and ones. Inside the computer, they take forms like a high or
-low electrical charge, a strong or weak signal, or a shiny or dull
-spot on the surface of a CD. Any piece of discrete information can be
-reduced to a sequence of zeros and ones, and thus represented in 
-bits.
+Битым может быть все двухзначные штукм, такие как вкл/выкл, один/ноль,
+открыто/закрыто, есть/нету, и обычно все эти значения описываются как
+Ноль и Один: 0/1. В компьютере, они представлены как большой/маленький
+электрический заряд, сильный/слабый сигнал, или как отражающая/пустая
+точка на рабочей поверхности компакт-диска. Любая порция дискретной
+информации может быть сведена к единицам и нулям, и представлена в
+виде бит.
 
-For example, think about how you might show the number thirteen
-in bits. It works the same way we write decimal numbers, but 
-instead of ten different digits, we have only two, and the weight of
-each increases by a factor of two from right to left. Here are the
-bits that make up the number thirteen, with the weights of the digits
-shown below them:
+Например, как мы можем записать число тринадцать, используя только 0 и
+1? Простой способ работает так же, как и обычная десятичная запись
+числа. Вместо десяти разных цифер (0,1,2,3,4,5,6,7,8,9) у нас есть
+две: 0 и 1, и значимость каждого разряда увеличивается в 2 раза (вместо в
+10 раз) слева направо. Вот показаны биты, которые представляют число
+13, со значениями, которые вкладывает каждый бит:
 
 ----
    0   0   0   0   1   1   0   1
  128  64  32  16   8   4   2   1
 ----
 
-So that's 00001101, or 8 + 4 + 1, which equals 13.
+То есть это цепочка бит 00001101, или 8 + 4 + 1, что равно 13.
 
-== Values ==
+Степени двойки (1,2,4,8,16,32,64,128,...) выглядят поначалу немного
+странно по сравнению со степенями десяти (1,10,100,1000,10000), но для
+компьютера дело обстоит ровно наоборот, и как только немного
+привыкаешь к ним, они становятся чрезвычайно удобными рычажками
+взаимодействия с компьютером.
 
-Imagine a sea of bits. An ocean of them. A typical modern computer
-has over thirty billion bits in its volatile data
-storage. Non-volatile storage (the hard disk or
-equivalent) tends to have yet a few orders of magnitude more.
+== Значения ==
+
+Представьте море бит. Или океан. Типичный мовременный компьютер
+помещает тридцать миллиардов бит в быстрой, временной
+памяти. Постоянная, медленная, внешняя память (жесткий диск или другой
+эквивалент) может иметь объем еще на несколько порядков больше.
 
 image::img/bit-sea.png[alt="The Ocean of Bits"]
 
-To be able to work with such quantities of bits without getting lost, you can separate them into chunks
-that represent pieces of information. In a JavaScript environment,
-those chunks are called _((value))s_. Though all values are made of
-bits, they play different roles. Every value has a ((type)) that
-determines its role. There are six basic types of values in
-JavaScript: numbers, strings, booleans, objects, functions, and
-undefined values.
+Чтобы работать с такими количествами бит и не потеряться в них, вы
+можете разбить их на блоки, которые представляют кусочки значимой
+информации. В окружении JavaScript, эти кусочки называются
+_((значения))_. И хотя все значения сделаны из бит, у каждого значения
+своя определенная роль. У каждое значение принадлежит определенному
+_((типу))_, который определяет роль этого значения. Есть шесть
+основных типов значений в JavaScript: числа (number), строки (string),
+логические (boolean), объекты (object), функции (function), и
+специальный тип, который называется "значение неопределено"
+(undefined).
 
-(((garbage collection)))To create a value, one must merely invoke its
-name. This is very convenient. You don't have to gather building
-material for your values or pay for them. You just call for one, and
-_woosh_, you have it. They are not created from thin air, of course.
-Every value has to be stored somewhere, and if you want to use a
-gigantic amount of them at the same time you might run out of bits.
-Fortunately, this is a problem only if you need them all
-simultaneously. As soon as you no longer use a value, it will
-dissipate, leaving behind its bits to be recycled as building material
-for the next generation of values.
+(((garbage collection)))Чтобы создать значение, нужно просто назвать
+его. Это очень удобно. Не нужно собирать строительный материал для
+ваших значений или платить за них. Нужно просто его позвать, и
+_оп-ля_, оно у вас. Они не создаются из ничего, конечно. Каждое
+значение должно где-то храниться, и если использовать какое-то
+гигантское количество их в какой-то момент, у вас могут закончиться
+все свободные биты. Эта проблема возникает, только если они все вам
+нужны одновременно. Как только какое-то значение вам больше не нужно,
+оно растворится, оставляя после себя те биты, из которых оно состояло,
+и которые преврятятся в строительный материал для новых поколений
+значений.
 
-This chapter introduces the atomic elements of JavaScript programs:
-Simple value types, and the operators that can act on such values.
+Эта глава знакомит вас с атомарными, простейшими элементами программ
+JavaScript: простейшими типами значений и операторами, которые могут с
+ними работать.
 
-== Numbers ==
+== Числа ==
 
-(((Number type)))Values of the _number_ type are, unsurprisingly,
-numeric values. In a JavaScript program, they are written as numbers
-usually are:
+(((Number type)))Значения _числового_ (_number_) типа, как это не
+удивительно, числа. В JavaScript они записываются как числа. (это
+можно сделать несколькими способами, здесь видим самый простой):
 
 [source,javascript]
 ----
 13
 ----
 
-(((binary)))Use that in a program, and it will cause the bit pattern
-for the number 13 to come into existence inside the computer's memory.
+(((binary)))Написанное в программе, эта запись повлечет возникновение
+битового паттерна для числа 13 в памяти компьютера.
 
-JavaScript uses a fixed number of bits, namely 64 of them, to store a
-single number value. There are only so many patterns you can make with 
-64 bits, which means that the amount of different numbers that can be 
-represented is limited. For N decimal digits, the amount of numbers
-that can be represented is 10^N^. Similarly, given 64 binary digits,
-you can represent 2^64^ different numbers, which is about 18 quintillion 
-(an 18 with 18 zeroes after it). This is a lot.
+На каждое число (или на каждое _значение числового типа_), JavaScript
+использует фиксированное количество бит. А именно, 64. Значит,
+количество разных последовательностей бит, выделенных для чисел,
+конечно. Это похоже на число разрядов в карманном калькуляторе. При
+помощи, например, 8ми десятичный разрядов в калькуляторе, мы можем
+представить числа от 0 до 9999999999, т.е. 10^8 разных чисел. Таким же
+образом, если у нас есть 64 двоичных разряда, мы можем представить
+2^64 разных числа. Что составляет около 18 квинтильонов (18 с 18
+нулями после). И это довольно много.
 
-Computer memory used to be a lot smaller, and people tended to use groups of
-eight or sixteen bits to represent their numbers. It was easy to
-accidentally _overflow_ such small numbers, to end up with a number that
-did not fit in the given amount of bits. Today, even personal computers have plenty of 
-memory, so we are free to use 64-bit chunks, which means we only need to worry about
-overflow when dealing with truly astronomical numbers.
+Раньше память компьютера была гораздо меньше, и люди использовали
+кусочки по восемь и шестнадцать бит для своих чисел. Тогда было легко
+случайно _переполнить_ эти маленькие числа, таким числом, которое не
+помещается в данное количество бит. Сегодня, когда даже мобильные
+компьютеры имеют _много_ памяти, мы можем спокойно использовать
+кусочки по 64 бита для чисел, и это значит, что нужно помнить о
+переполнении только для действительно астрономически больших чисел.
 
-Not all whole numbers below 18 quintillion fit in a JavaScript number
-though. Those bits also store negative numbers, so one bit indicates the 
-sign of the number. A bigger issue is that nonwhole numbers must also be 
-represented. To do this, some of the bits are used to store the position 
-of the decimal point. So the actual maximum whole number that can be stored is more
-in the range of nine quadrillion (15 zeroes), which is still pleasantly huge.
+Не все целые числа до 18 квинтильенов помещаются в _тип_ число
+JavaScript. Эти же 64 бита хранят и отрицательные числа. Так что один
+бит нужен, чтобы представлять знак числа. Более сложен случай дробных
+чисел. И они тоже должны быть записаны в этих же 64 битах. Это
+делается так. Некоторые из 64 бит используются, чтобы хранить
+положение дробной точки. Так что, на самом деле, самое большое целое
+число, которое может быть сохранено таким способом, порядка девяти
+квадриллионов (15 нулей). Все еще довольно много.
 
-Fractional numbers are written by using a dot:
+Дробные числа записываются при помощи точки:
 
 [source,javascript]
 ----
 9.81
 ----
 
-(((scientific notation)))For very big or very small numbers, one can
-also use scientific notation by adding an “e”, followed by the
-exponent of the number:
+(((scientific notation)))Для очень больших или очень маленьких чисел
+можно также использовать экспоненциальную запись. Нужно добавить "e",
+и после нее записать показатель степени 10 для числа:
 
 [source,javascript]
 ----
 2.998e8
 ----
 
-That is 2.998 × 10^8^ = 299800000.
+Это равно 2.998 × 10^8 = 299800000.
 
 Calculations with whole numbers (also called _((integer))s_) smaller
 than the aforementioned 9 quadrillion are guaranteed to always be
