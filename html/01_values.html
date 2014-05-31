@@ -1,0 +1,447 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <title>Значения и типы :: Eloquent JavaScript</title>
+  <link rel=stylesheet href="js/node_modules/codemirror/lib/codemirror.css">
+  <script src="js/node_modules/codemirror/lib/codemirror.js"></script>
+  <script src="js/node_modules/codemirror/mode/javascript/javascript.js"></script>
+  <script src="js/node_modules/codemirror/mode/css/css.js"></script>
+  <script src="js/node_modules/codemirror/mode/xml/xml.js"></script>
+  <script src="js/node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="js/node_modules/codemirror/addon/edit/matchbrackets.js"></script>
+  <script src="js/node_modules/acorn/acorn.js"></script>
+  <script src="js/node_modules/acorn/util/walk.js"></script>
+  <link rel=stylesheet href="ejs.css">
+  <script src="js/sandbox.js"></script>
+  <script src="js/ejs.js"></script>
+  <script>var chapNum = 1;</script>
+</head>
+
+<article>
+<nav>
+  <a href="00_intro.html" title="previous chapter">⬅</a>
+  <a href="index.html" title="cover">⬆</a>
+  <a href="02_program_structure.html" title="next chapter">➡</a>
+</nav>
+
+<h1><div class=chap_num>Chapter 1</div>Значения и типы</h1>
+<blockquote>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>За поверхностью машины двигается программа. Без напряжений и
+колебаний, она расширяется и сжимается. В полной гармонии электроны
+разбегаются и перегруппировываются. Фигуры на мониторе&#8201;&#8212;&#8201;лишь волны
+на поверхности воды. Суть остается невидимой под ними.</p>
+ <footer>учитель Юнь-Ма, <cite>Книга Программ</cite></footer>
+</blockquote>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>В мире компьютера все&#8201;&#8212;&#8201;лишь
+данные. Мы можем читать данные, изменять данные, создавать новые
+данные. Но все, что не является данными, попросту не существует. И все
+яти данные хранятся как длинные цепочки бит, и значт, фундаментально
+являются одной и той же сущностью.</p>
+<p><a class=p_ident id="p_3T1zkDN+tm" href="#p_3T1zkDN+tm"></a>Битым может быть все двухзначные штукм, такие как вкл/выкл, один/ноль,
+открыто/закрыто, есть/нету, и обычно все эти значения описываются как
+Ноль и Один: 0/1. В компьютере, они представлены как большой/маленький
+электрический заряд, сильный/слабый сигнал, или как отражающая/пустая
+точка на рабочей поверхности компакт-диска. Любая порция дискретной
+информации может быть сведена к единицам и нулям, и представлена в
+виде бит.</p>
+<p><a class=p_ident id="p_FHgLvfsAe9" href="#p_FHgLvfsAe9"></a>Например, как мы можем записать число тринадцать, используя только 0 и
+1? Простой способ работает так же, как и обычная десятичная запись
+числа. Вместо десяти разных цифер (0,1,2,3,4,5,6,7,8,9) у нас есть
+две: 0 и 1, и значимость каждого разряда увеличивается в 2 раза (вместо в
+10 раз) слева направо. Вот показаны биты, которые представляют число
+13, со значениями, которые вкладывает каждый бит:</p>
+<pre>   0   0   0   0   1   1   0   1
+ 128  64  32  16   8   4   2   1</pre>
+<p><a class=p_ident id="p_WSDLrF25OY" href="#p_WSDLrF25OY"></a>То есть это цепочка бит 00001101, или 8 + 4 + 1, что равно 13.</p>
+<p><a class=p_ident id="p_d9yz8sh90/" href="#p_d9yz8sh90/"></a>Степени двойки (1,2,4,8,16,32,64,128,...) выглядят поначалу немного
+странно по сравнению со степенями десяти (1,10,100,1000,10000), но для
+компьютера дело обстоит ровно наоборот, и как только немного
+привыкаешь к ним, они становятся чрезвычайно удобными рычажками
+взаимодействия с компьютером.</p>
+<h2 id="_значения">Значения</h2>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>Представьте море бит. Или океан. Типичный мовременный компьютер
+помещает тридцать миллиардов бит в быстрой, временной
+памяти. Постоянная, медленная, внешняя память (жесткий диск или другой
+эквивалент) может иметь объем еще на несколько порядков больше.</p>
+<div class="image">
+  <img src="img/bit-sea.png" alt="The Ocean of Bits">
+</div>
+<p><a class=p_ident id="p_wmFjpebuLu" href="#p_wmFjpebuLu"></a>Чтобы работать с такими количествами бит и не потеряться в них, вы
+можете разбить их на блоки, которые представляют кусочки значимой
+информации. В окружении JavaScript, эти кусочки называются
+<em>значения</em>. И хотя все значения сделаны из бит, у каждого значения
+своя определенная роль. У каждое значение принадлежит определенному
+<em>типу</em>, который определяет роль этого значения. Есть шесть
+основных типов значений в JavaScript: числа (number), строки (string),
+логические (boolean), объекты (object), функции (function), и
+специальный тип, который называется "значение неопределено"
+(undefined).</p>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>Чтобы создать значение, нужно просто назвать
+его. Это очень удобно. Не нужно собирать строительный материал для
+ваших значений или платить за них. Нужно просто его позвать, и
+<em>оп-ля</em>, оно у вас. Они не создаются из ничего, конечно. Каждое
+значение должно где-то храниться, и если использовать какое-то
+гигантское количество их в какой-то момент, у вас могут закончиться
+все свободные биты. Эта проблема возникает, только если они все вам
+нужны одновременно. Как только какое-то значение вам больше не нужно,
+оно растворится, оставляя после себя те биты, из которых оно состояло,
+и которые преврятятся в строительный материал для новых поколений
+значений.</p>
+<p><a class=p_ident id="p_7mIJI/9fxR" href="#p_7mIJI/9fxR"></a>Эта глава знакомит вас с атомарными, простейшими элементами программ
+JavaScript: простейшими типами значений и операторами, которые могут с
+ними работать.</p>
+<h2 id="_числа">Числа</h2>
+<p><a class=p_ident id="p_DhE6b9fjQg" href="#p_DhE6b9fjQg"></a>Значения <em>числового</em> (<em>number</em>) типа, как это не
+удивительно, числа. В JavaScript они записываются как числа. (это
+можно сделать несколькими способами, здесь видим самый простой):</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_vTB6PsMp4Q" href="#c_vTB6PsMp4Q"></a><span class="cm-number">13</span></pre>
+<p><a class=p_ident id="p_vTB6PsMp4Q" href="#p_vTB6PsMp4Q"></a>Написанное в программе, эта запись повлечет возникновение
+битового паттерна для числа 13 в памяти компьютера.</p>
+<p><a class=p_ident id="p_6KoNJsqI2W" href="#p_6KoNJsqI2W"></a>На каждое число (или на каждое <em>значение числового типа</em>), JavaScript
+использует фиксированное количество бит. А именно, 64. Значит,
+количество разных последовательностей бит, выделенных для чисел,
+конечно. Это похоже на число разрядов в карманном калькуляторе. При
+помощи, например, 8ми десятичный разрядов в калькуляторе, мы можем
+представить числа от 0 до 9999999999, т.е. 10<sup>8 разных чисел. Таким же
+образом, если у нас есть 64 двоичных разряда, мы можем представить
+2</sup>64 разных числа. Что составляет около 18 квинтильонов (18 с 18
+нулями после). И это довольно много.</p>
+<p><a class=p_ident id="p_xmxlF1/swx" href="#p_xmxlF1/swx"></a>Раньше память компьютера была гораздо меньше, и люди использовали
+кусочки по восемь и шестнадцать бит для своих чисел. Тогда было легко
+случайно <em>переполнить</em> эти маленькие числа, таким числом, которое не
+помещается в данное количество бит. Сегодня, когда даже мобильные
+компьютеры имеют <em>много</em> памяти, мы можем спокойно использовать
+кусочки по 64 бита для чисел, и это значит, что нужно помнить о
+переполнении только для действительно астрономически больших чисел.</p>
+<p><a class=p_ident id="p_y+yN//TktM" href="#p_y+yN//TktM"></a>Не все целые числа до 18 квинтильенов помещаются в <em>тип</em> число
+JavaScript. Эти же 64 бита хранят и отрицательные числа. Так что один
+бит нужен, чтобы представлять знак числа. Более сложен случай дробных
+чисел. И они тоже должны быть записаны в этих же 64 битах. Это
+делается так. Некоторые из 64 бит используются, чтобы хранить
+положение дробной точки. Так что, на самом деле, самое большое целое
+число, которое может быть сохранено таким способом, порядка девяти
+квадриллионов (15 нулей). Все еще довольно много.</p>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>Дробные числа записываются при помощи точки:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_pDtjSHBkOT" href="#c_pDtjSHBkOT"></a><span class="cm-number">9.81</span></pre>
+<p><a class=p_ident id="p_1ck1OP7zFL" href="#p_1ck1OP7zFL"></a>Для очень больших или очень маленьких чисел
+можно также использовать экспоненциальную запись. Нужно добавить "e",
+и после нее записать показатель степени 10 для числа:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_BcwYGRXGfX" href="#c_BcwYGRXGfX"></a><span class="cm-number">2.998e8</span></pre>
+<p><a class=p_ident id="p_vGEOlZMSB+" href="#p_vGEOlZMSB+"></a>Это равно 2.998 × 10^8 = 299800000.</p>
+<p><a class=p_ident id="p_8KgYC0F1fX" href="#p_8KgYC0F1fX"></a>Calculations with whole numbers (also called <em>integers</em>) smaller
+than the aforementioned 9 quadrillion are guaranteed to always be
+precise. Unfortunately, calculations with fractional numbers are
+generally not. Just as π (pi) cannot be precisely expressed by a finite
+amount of decimal digits, many numbers lose some precision when only
+64 bits are available to store them. This is a shame, but it causes
+practical problems only in very specific situations. The important
+thing is to be aware of it and treat fractional digital numbers as
+approximations, not as precise values.</p>
+<h3 id="_arithmetic">Arithmetic</h3>
+<p><a class=p_ident id="p_PO8MaZIpG1" href="#p_PO8MaZIpG1"></a>
+The main thing to do with numbers is arithmetic. Arithmetic operations
+such as addition or multiplication take two number values and produce
+a new number from them. Here is what they look like in JavaScript:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_j8xQkvZ7Iq" href="#c_j8xQkvZ7Iq"></a><span class="cm-number">100</span> <span class="cm-operator">+</span> <span class="cm-number">4</span> <span class="cm-operator">*</span> <span class="cm-number">11</span></pre>
+<p><a class=p_ident id="p_OLlk8/LnDv" href="#p_OLlk8/LnDv"></a>The “+” and “*” symbols are called
+<em>operators</em>. The first stands for addition, and the second stands for
+multiplication. Putting an operator between two values will
+apply it to those values and produce a
+new value.</p>
+<p><a class=p_ident id="p_5vxWadZU3g" href="#p_5vxWadZU3g"></a>Does the example mean “add 4 and 100, and multiply
+the result by 11”, or is the multiplication done before the adding?
+As you might have guessed, the multiplication happens first. But, as
+in mathematics, this can be changed by wrapping the addition in
+parentheses:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_pMHkELf8+H" href="#c_pMHkELf8+H"></a>(<span class="cm-number">100</span> <span class="cm-operator">+</span> <span class="cm-number">4</span>) <span class="cm-operator">*</span> <span class="cm-number">11</span></pre>
+<p><a class=p_ident id="p_qti+2j7Cn8" href="#p_qti+2j7Cn8"></a>For
+subtraction, there is the “-” operator, and division can be done with
+the “/” operator.</p>
+<p><a class=p_ident id="p_KHUto8GJVD" href="#p_KHUto8GJVD"></a>When operators appear together without parentheses, the order in which
+they are applied is determined by the <em>precedence</em> of the
+operators. The example shows that multiplication comes before
+addition. “/” has the same precedence as “*”. Likewise for “+” and
+“-”. When multiple operators with the same precedence appear next to
+each other (as in <code>1 - 2 + 1</code>), they are applied left to right.</p>
+<p><a class=p_ident id="p_epF5qxonWY" href="#p_epF5qxonWY"></a>These rules of precedence are not something you should worry about.
+When in doubt, just add parentheses.</p>
+<p><a class=p_ident id="p_qMmcH3brf3" href="#p_qMmcH3brf3"></a>There is one more arithmetic
+operator, which you might not recognize. The “%” symbol is used to
+represent the <em>remainder</em> operation. <code>X % Y</code> is the remainder of
+dividing <code>X</code> by <code>Y</code>. For example, <code>314 % 100</code> produces <code>14</code>, and <code>144
+% 12</code> gives <code>0</code>. Remainder&#8217;s precedence is the same as that of
+multiplication and division. You&#8217;ll often see this operator
+referred to as “modulo”, though technically, “remainder” is more
+accurate.</p>
+<h3 id="_special_numbers">Special numbers</h3>
+<p><a class=p_ident id="p_JBBwZano0e" href="#p_JBBwZano0e"></a>There are three special values in JavaScript that are considered
+numbers but don&#8217;t behave like normal numbers.</p>
+<p><a class=p_ident id="p_2+t3nK7Yp2" href="#p_2+t3nK7Yp2"></a>The first two are <code>Infinity</code> and <code>-Infinity</code>, which
+represent the positive and negative infinities. <code>Infinity - 1</code> is
+still <code>Infinity</code>, and so on. Don&#8217;t put too much trust in infinity-based
+computation. It isn&#8217;t mathematically solid, and it
+will quickly lead to our next special number: <code>NaN</code>.</p>
+<p><a class=p_ident id="p_E2lMHg1a0p" href="#p_E2lMHg1a0p"></a><code>NaN</code> stands for “not a number”, even though it is a
+value of the number type. You&#8217;ll get this result when you say try to
+calculate <code>0 / 0</code> (zero divided by zero), <code>Infinity - Infinity</code>, or
+any number of other numeric operations that don&#8217;t yield a precise,
+meaningful result.</p>
+<h2 id="_strings">Strings</h2>
+<p><a class=p_ident id="p_JUYnmsnZEA" href="#p_JUYnmsnZEA"></a>The next basic data
+type is the <em>string</em>. Strings are used to represent text. They are
+written by enclosing their content in quotes:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_pB8USspQsW" href="#c_pB8USspQsW"></a><span class="cm-string">"Patch my boat with chewing gum"</span>
+<span class="cm-string">'Monkeys wave goodbye'</span></pre>
+<p><a class=p_ident id="p_Y57GE4NUct" href="#p_Y57GE4NUct"></a>Both single and double quotes can be used to
+mark strings as long as the quotes at the start and the end of the
+string match.</p>
+<p><a class=p_ident id="p_ah2sKgvNub" href="#p_ah2sKgvNub"></a>Almost anything can be put
+between quotes, and JavaScript will make a string value out of it. But
+a few characters are more difficult. You can imagine how putting quotes
+between quotes might be hard. <em>Newlines</em> (the characters you get when you
+press <code>enter</code>) also can&#8217;t be put between quotes. The string has to
+stay on a single line.</p>
+<p><a class=p_ident id="p_ZwX8TU4PhC" href="#p_ZwX8TU4PhC"></a>To be able to have such characters in a string, the
+following notation is used: whenever a backslash (“\”) is found
+inside quoted text, it indicates that the character after it has a
+special meaning. A quote that is preceded by a backslash will not end
+the string, but be part of it. When an “n” character occurs after a
+backslash, it is interpreted as a newline. Similarly, a “t” after a
+backslash means a tab character. Take the following string:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_+tEhLdJIcu" href="#c_+tEhLdJIcu"></a><span class="cm-string">"This is the first line\nAnd this is the second"</span></pre>
+<p><a class=p_ident id="p_rtFNX67M4o" href="#p_rtFNX67M4o"></a>The actual text contained is this:</p>
+<pre>This is the first line
+And this is the second</pre>
+<p><a class=p_ident id="p_3tk6i5Wilf" href="#p_3tk6i5Wilf"></a>There are, of course, situations where you want a backslash in a
+string to be just a backslash, not a special code. If two backslashes
+follow each other, they will collapse together, and only one will be
+left in the resulting string value. This is how the string “<code>A newline
+character is written like "\n"</code>” can be written:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_nou8u5sxl3" href="#c_nou8u5sxl3"></a><span class="cm-string">"A newline character is written like \"\\n\"."</span></pre>
+<p><a class=p_ident id="p_FBU7ANmjDA" href="#p_FBU7ANmjDA"></a>Strings cannot be divided,
+multiplied, or subtracted, but the “+” operator <em>can</em> be used on them.
+It does not add, but it <em>concatenates</em>—it glues two strings together.
+The following line will produce the string <code>"concatenate"</code>:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_oV+FsD85id" href="#c_oV+FsD85id"></a><span class="cm-string">"con"</span> <span class="cm-operator">+</span> <span class="cm-string">"cat"</span> <span class="cm-operator">+</span> <span class="cm-string">"e"</span> <span class="cm-operator">+</span> <span class="cm-string">"nate"</span></pre>
+<p><a class=p_ident id="p_+o5PJ5ubRj" href="#p_+o5PJ5ubRj"></a>There are more ways of manipulating strings, which we will discuss
+when we get to methods in Chapter 4.</p>
+<h2 id="_unary_operators">Unary operators</h2>
+<p><a class=p_ident id="p_GyQlmgK5IK" href="#p_GyQlmgK5IK"></a>Not all operators are
+symbols. Some are written as words. One example is the <code>typeof</code>
+operator, which produces a string value naming the type of the value
+you give it.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_cbV8yHeFlx" href="#c_cbV8yHeFlx"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-keyword">typeof</span> <span class="cm-number">4.5</span>)
+<span class="cm-comment">// → number</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-keyword">typeof</span> <span class="cm-string">"x"</span>)
+<span class="cm-comment">// → string</span></pre>
+<p><a class=p_ident id="p_X4IS2nLCLI" href="#p_X4IS2nLCLI"></a>We will use <code>console.log</code> in example code to indicate that we want to
+see the result of evaluating something. When you run such code, the
+value produced should be shown on the screen, though how it appears will
+depend on the JavaScript environment you use to run it.</p>
+<p><a class=p_ident id="p_j8F6SrKjF/" href="#p_j8F6SrKjF/"></a>The other
+operators we saw all operated on two values, <code>typeof</code> takes only one.
+Operators that use two values are called <em>binary</em> operators, while
+those that take one are called <em>unary</em> operators. The minus operator
+can be used both as a binary operator and a unary operator:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_I6DXnYgW4r" href="#c_I6DXnYgW4r"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-operator">-</span> (<span class="cm-number">10</span> <span class="cm-operator">-</span> <span class="cm-number">2</span>))
+<span class="cm-comment">// → -8</span></pre>
+<h2 id="_boolean_values">Boolean values</h2>
+<p><a class=p_ident id="p_6L5kUCK2Lz" href="#p_6L5kUCK2Lz"></a>Often, you will
+need a value that simply distinguishes between two possiblities, like “yes”
+and “no”, or “on” and “off”. For this, JavaScript has a <em>boolean</em> type,
+which has just two values: true and false (which are written
+simply as those words).</p>
+<h3 id="_comparisons">Comparisons</h3>
+<p><a class=p_ident id="p_gT1sB3xvAW" href="#p_gT1sB3xvAW"></a>Here is one way to produce boolean values:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_EmBjAFxLPS" href="#c_EmBjAFxLPS"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-number">3</span> <span class="cm-operator">></span> <span class="cm-number">2</span>)
+<span class="cm-comment">// → true</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-number">3</span> <span class="cm-operator">&lt;</span> <span class="cm-number">2</span>)
+<span class="cm-comment">// → false</span></pre>
+<p><a class=p_ident id="p_j0tOwzfb6M" href="#p_j0tOwzfb6M"></a>The “&gt;” and “&lt;” signs are the traditional symbols
+for “is greater than” and “is less than”, respectively. They are binary operators,
+applying them results in a boolean value that indicates
+whether they hold true in this case.</p>
+<p><a class=p_ident id="p_NxTGvCsM4s" href="#p_NxTGvCsM4s"></a>Strings can be compared in the same way:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_IsyRGPaMr8" href="#c_IsyRGPaMr8"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Aardvark"</span> <span class="cm-operator">&lt;</span> <span class="cm-string">"Zoroaster"</span>)
+<span class="cm-comment">// → true</span></pre>
+<p><a class=p_ident id="p_No3uOP/bY2" href="#p_No3uOP/bY2"></a>The way strings are ordered is more or less alphabetic: uppercase
+letters are always “less” than lowercase ones, so <code>"Z" &lt; "a"</code> is
+true, and nonalphabetic characters (“!”, “-”, and so on) are also
+included in the ordering. The actual comparison is
+based on the <em>Unicode</em> standard. This standard assigns a
+number to virtually every character one would ever need, including
+characters from Greek, Arabic, Japanese, Tamil, and so on. Having such
+numbers is practical for storing strings inside a computer—you can
+represent them as a sequence of numbers. When comparing strings,
+JavaScript goes over them from left to right, comparing the numeric
+codes of the characters one by one.</p>
+<p><a class=p_ident id="p_fGKTuK5BBc" href="#p_fGKTuK5BBc"></a>Other similar operators are “&gt;=” (greater than or equal
+to), “&lt;=” (less than or equal to), “==” (equal to), and
+“!=” (not equal to).</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_2rW/lxam/h" href="#c_2rW/lxam/h"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Itchy"</span> <span class="cm-operator">!=</span> <span class="cm-string">"Scratchy"</span>)
+<span class="cm-comment">// → true</span></pre>
+<p><a class=p_ident id="p_tLooHn2QPj" href="#p_tLooHn2QPj"></a>There is only one value in JavaScript that is not equal to itself, and
+that is <code>NaN</code> (not-a-number).</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_ipVz0wMIWL" href="#c_ipVz0wMIWL"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">NaN</span> <span class="cm-operator">==</span> <span class="cm-atom">NaN</span>)
+<span class="cm-comment">// → false</span></pre>
+<p><a class=p_ident id="p_/oU7fPa5Kl" href="#p_/oU7fPa5Kl"></a><code>NaN</code> is supposed to denote the result of a nonsensical computation, and
+as such, it isn&#8217;t equal to the result of any <em>other</em> nonsensical computations.</p>
+<h3 id="_logical_operators">Logical operators</h3>
+<p><a class=p_ident id="p_YQF2TG9TuV" href="#p_YQF2TG9TuV"></a>There are also some operations that can be
+applied to boolean values themselves. JavaScript supports three
+logical operators: <em>and</em>, <em>or</em>, and <em>not</em>. These can be used to
+“reason” about booleans.</p>
+<p><a class=p_ident id="p_h6pEyNS4IJ" href="#p_h6pEyNS4IJ"></a>The “&amp;&amp;” operator represents logical <em>and</em>. It is a
+binary operator, and its result is true only if both the values
+given to it are true.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_hP6D/SF5eM" href="#c_hP6D/SF5eM"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">true</span> <span class="cm-operator">&amp;&amp;</span> <span class="cm-atom">false</span>)
+<span class="cm-comment">// → false</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">true</span> <span class="cm-operator">&amp;&amp;</span> <span class="cm-atom">true</span>)
+<span class="cm-comment">// → true</span></pre>
+<p><a class=p_ident id="p_T/V30CHY82" href="#p_T/V30CHY82"></a>The “||” operator denotes logical <em>or</em>. It produces
+true if either of the values given to it is true:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_MyM/xeosFi" href="#c_MyM/xeosFi"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">||</span> <span class="cm-atom">true</span>)
+<span class="cm-comment">// → true</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">||</span> <span class="cm-atom">false</span>)
+<span class="cm-comment">// → false</span></pre>
+<p><a class=p_ident id="p_JakZ+mTPwL" href="#p_JakZ+mTPwL"></a><em>Not</em> is written as an exclamation mark
+(“!”). It is a unary operator that flips the value given to it—<code>!true</code>
+produces <code>false</code> and <code>!false</code> gives <code>true</code>.</p>
+<p><a class=p_ident id="p_qSXjNNI5/y" href="#p_qSXjNNI5/y"></a>When mixing these boolean operators with arithmetic
+and other operators, it is not always obvious when parentheses are
+needed. In practice, one can usually get by with knowing that of the
+operators we have seen so far, “||” has the lowest precedence, then
+comes “&amp;&amp;”, then the comparison operators (“&gt;”, “==”, and so on), and
+then the rest. This order has been chosen such that, in typical
+expressions like the one below, as few parentheses as possible are
+necessary.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_GXxBAa9WPA" href="#c_GXxBAa9WPA"></a><span class="cm-number">1</span> <span class="cm-operator">+</span> <span class="cm-number">1</span> <span class="cm-operator">==</span> <span class="cm-number">2</span> <span class="cm-operator">||</span> <span class="cm-number">10</span> <span class="cm-operator">*</span> <span class="cm-number">10</span> <span class="cm-operator">&lt;=</span> <span class="cm-number">100</span></pre>
+<p><a class=p_ident id="p_EWJu4coIAh" href="#p_EWJu4coIAh"></a>The last logical operator I
+want to discuss is not unary, not binary, but <em>ternary</em>, operating on
+three values. It is written with a question mark and a colon, like
+this:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_S1KcGPZ6au" href="#c_S1KcGPZ6au"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">true</span> <span class="cm-operator">?</span> <span class="cm-number">1</span> : <span class="cm-number">2</span>);
+<span class="cm-comment">// → 1</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">?</span> <span class="cm-number">1</span> : <span class="cm-number">2</span>);
+<span class="cm-comment">// → 2</span></pre>
+<p><a class=p_ident id="p_jwM7LBoS+8" href="#p_jwM7LBoS+8"></a>This one is called the conditional operator (or sometimes just
+“ternary operator”, since it is the only such operator in the
+langauge). The value on the left of the question mark “picks” which of
+the other two values will come out. When it is true, the middle value
+is chosen, when it is false, the right-hand value comes out.</p>
+<h2 id="_undefined_values">Undefined values</h2>
+<p><a class=p_ident id="p_Q/OIPtr8xY" href="#p_Q/OIPtr8xY"></a>There are two special values, written <code>null</code>
+and <code>undefined</code>, that are used to denote the absence of a meaningful
+value. They are themselves values, but they carry no
+information.</p>
+<p><a class=p_ident id="p_HKYk2Oxaf6" href="#p_HKYk2Oxaf6"></a>Many operations in the language which don&#8217;t produce a meaningful value
+(we&#8217;ll see some in the next chapter) will yield <code>undefined</code>, simply
+because they have to yield <em>some</em> value.</p>
+<p><a class=p_ident id="p_vNLaRBSip6" href="#p_vNLaRBSip6"></a>The difference in meaning between <code>undefined</code> and <code>null</code> is an accident
+of JavaScript&#8217;s design, and it doesn&#8217;t matter most of the time. In the cases
+where you actually have to concern yourself with these values, I
+recommend treating them as interchangeable (more on that in a moment).</p>
+<h2 id="_automatic_type_conversion">Automatic type conversion</h2>
+<p><a class=p_ident id="p_zA7GPSOR8J" href="#p_zA7GPSOR8J"></a>In the introduction, I mentioned that JavaScript
+goes out of its way to accept almost any program you give it, even
+programs that do odd things. This is nicely demonstrated by these
+expressions:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_le/xDT5s3y" href="#c_le/xDT5s3y"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-number">8</span> <span class="cm-operator">*</span> <span class="cm-atom">null</span>)
+<span class="cm-comment">// → 0</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"5"</span> <span class="cm-operator">-</span> <span class="cm-number">1</span>)
+<span class="cm-comment">// → 4</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"5"</span> <span class="cm-operator">+</span> <span class="cm-number">1</span>)
+<span class="cm-comment">// → 51</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"five"</span> <span class="cm-operator">*</span> <span class="cm-number">2</span>)
+<span class="cm-comment">// → NaN</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">==</span> <span class="cm-number">0</span>)
+<span class="cm-comment">// → true</span></pre>
+<p><a class=p_ident id="p_kjH0rNN5jK" href="#p_kjH0rNN5jK"></a>When an operator is applied to the “wrong” type of value, it will
+quietly convert that value to the type it wants, using a set of rules
+that often aren&#8217;t what you want or expect. This is called <em>type
+coercion</em>. So the <code>null</code> in the first expression becomes <code>0</code> and the
+<code>"5"</code> in the second expression becomes <code>5</code> (from string to number).
+Yet in the third expression, <code>+</code> tries string concatenation before
+numeric addition, and so the <code>1</code> is converted to <code>"1"</code> (from number to
+string).</p>
+<p><a class=p_ident id="p_mw5To5JJ6Q" href="#p_mw5To5JJ6Q"></a>When something that doesn&#8217;t map to a number in an obvious way (such as
+<code>"five"</code> or <code>undefined</code>) is converted to a number, the value <code>NaN</code> is
+produced. Further arithmetic operations on <code>NaN</code> keep on producing
+<code>NaN</code>, so if you find yourself getting one of those in an unexpected
+place, look for accidental type conversions.</p>
+<p><a class=p_ident id="p_2V6JygcBXy" href="#p_2V6JygcBXy"></a>When comparing values of the same type using “==”,
+the outcome is easy to predict: you should get true when both
+values are the same. But when the types differ, JavaScript uses a
+complicated and confusing set of rules to determine what to do. I will
+not explain them precisely, but in most cases, it just tries to convert
+one of the values to the other value&#8217;s type. However, when <code>null</code>
+or <code>undefined</code> occurs on either side of the operator, it produces
+true only if both sides are <code>null</code> or <code>undefined</code>.</p>
+<p><a class=p_ident id="p_MzUL8LaoQ2" href="#p_MzUL8LaoQ2"></a>That last piece of behavior is often very useful. When you want to
+test whether a value has a real value instead of <code>null</code>
+or <code>undefined</code>, you can simply compare it to <code>null</code> with the “==” (or
+“!=”) operator.</p>
+<p><a class=p_ident id="p_N4OuWeYOwF" href="#p_N4OuWeYOwF"></a>But what if you want to test
+whether something refers to the precise value <code>false</code>? The rules for
+converting strings and numbers to boolean values state that <code>0</code>,
+<code>NaN</code>, and the empty string (<code>""</code>) count as <code>false</code>, while all the other
+values count as true. Because of this, expressions like <code>0 == false</code>
+and <code>"" == false</code> are also true. For cases like this, where you do
+<em>not</em> want any automatic type conversions to happen, there are two
+extra operators: “===” and “!==”. The first tests whether a value is
+precisely equal to the other, and the second tests whether it is not
+precisely equal. So <code>"" === false</code> is false as expected.</p>
+<p><a class=p_ident id="p_S/opLpHJcU" href="#p_S/opLpHJcU"></a>I recommend using the three-character comparison operators defensively, to
+prevent unexpected type conversions from tripping you up. But when you&#8217;re
+certain the types on both sides will be the same, there is no problem with
+using the shorter operators.</p>
+<h3 id="_short_circuiting_of_logical_operators">Short-circuiting of logical operators</h3>
+<p><a class=p_ident id="p_CFbagJsQYK" href="#p_CFbagJsQYK"></a>The
+logical operators “&amp;&amp;” and “||” handle values of different types in a
+peculiar way. They <em>will</em> convert the value on their left side to
+boolean type in order to decide what to do, but depending on the
+operator and the result of that conversion, they either return the
+<em>original</em> left-hand value, or the right-hand value.</p>
+<p><a class=p_ident id="p_BFq+/JeBH9" href="#p_BFq+/JeBH9"></a>The “||” operator, for example, will return the value to its left when that can be
+converted to true, and the value on its right otherwise. This conversion works as
+you&#8217;d expect for boolean values and should do something analogous for
+values of other types.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_ME/mwf+CCF" href="#c_ME/mwf+CCF"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">null</span> <span class="cm-operator">||</span> <span class="cm-string">"user"</span>)
+<span class="cm-comment">// → user</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Karl"</span> <span class="cm-operator">||</span> <span class="cm-string">"user"</span>)
+<span class="cm-comment">// → Karl</span></pre>
+<p><a class=p_ident id="p_GtKVVao8+3" href="#p_GtKVVao8+3"></a>This functionality allows the <code>||</code> operator to be used as a way
+to fall back on a default value. If you give it an expression that might produce
+an empty value on the left, the value on the right will be used as a replacement
+in that case.</p>
+<p><a class=p_ident id="p_LlkwKHpB6u" href="#p_LlkwKHpB6u"></a>The “&amp;&amp;” operator works similarly, but the other way around. When the
+value to its left is something that converts to false, it returns that
+value, and otherwise it returns the value on its right.</p>
+<p><a class=p_ident id="p_IW4V8ztNjs" href="#p_IW4V8ztNjs"></a>Another important property of these two
+operators is that the expression to their right is evaluated only when
+necessary. In the case of <code>true || X</code>, no matter what <code>X</code> is—even if
+it&#8217;s an expression that does something <em>terrible</em>—the result will be
+true, and <code>X</code> is never evaluated. The same goes for <code>false &amp;&amp; X</code>,
+which is false, and will ignore <code>X</code>. This is called <em>short-circuit evaluation</em>.</p>
+<p><a class=p_ident id="p_8SgjO19y/o" href="#p_8SgjO19y/o"></a>The conditional operator works in a similar way. The first expression
+is always evaluated, but the second or third value, the one that is
+not picked, is also not evaluated.</p>
+<h2 id="_summary">Summary</h2>
+<p><a class=p_ident id="p_K8XmHEfEpW" href="#p_K8XmHEfEpW"></a>We looked at four types of JavaScript values in this chapter: numbers,
+strings, booleans, and undefined values.</p>
+<p><a class=p_ident id="p_N2a5dk4W5+" href="#p_N2a5dk4W5+"></a>Such values are created by typing in their name (<code>true</code>, <code>null</code>) or
+value (<code>13</code>, <code>"abc"</code>). You can combine and transform values with operators. We saw binary
+operators for arithmetic (“+”, “-”, “*”, “/”,
+and “%”), string concatenation (“+”), comparison (“==”, “!=”,
+“===”, “!==”, “&lt;”, “&gt;”, “&lt;=”, “&gt;=”), and logic (“&amp;&amp;”, “||”), as well
+as several unary operators (“-” to negate a number, “!” to negate
+logically, and <code>typeof</code> to find a value&#8217;s type).</p>
+<p><a class=p_ident id="p_WHkzsJyNsJ" href="#p_WHkzsJyNsJ"></a>This gives you enough information to use JavaScript as a pocket
+calculator, but not much more. The next chapter will start tying these
+basic expressions together into basic programs.</p>
+<nav>
+  <a href="00_intro.html" title="previous chapter">⬅</a>
+  <a href="index.html" title="cover">⬆</a>
+  <a href="02_program_structure.html" title="next chapter">➡</a>
+</nav>
+</article>
