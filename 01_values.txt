@@ -141,6 +141,8 @@ JavaScript. Эти же 64 бита хранят и отрицательные �
 
 Это равно 2.998 × 10^8 = 299800000.
 
+Вычисления с целыми числами.
+
 Calculations with whole numbers (also called _((integer))s_) smaller
 than the aforementioned 9 quadrillion are guaranteed to always be
 precise. Unfortunately, calculations with fractional numbers are
