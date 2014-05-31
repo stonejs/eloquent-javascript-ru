@@ -1,0 +1,679 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <title>HTTP :: Eloquent JavaScript</title>
+  <link rel=stylesheet href="js/node_modules/codemirror/lib/codemirror.css">
+  <script src="js/node_modules/codemirror/lib/codemirror.js"></script>
+  <script src="js/node_modules/codemirror/mode/javascript/javascript.js"></script>
+  <script src="js/node_modules/codemirror/mode/css/css.js"></script>
+  <script src="js/node_modules/codemirror/mode/xml/xml.js"></script>
+  <script src="js/node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="js/node_modules/codemirror/addon/edit/matchbrackets.js"></script>
+  <script src="js/node_modules/acorn/acorn.js"></script>
+  <script src="js/node_modules/acorn/util/walk.js"></script>
+  <link rel=stylesheet href="ejs.css">
+  <script src="js/sandbox.js"></script>
+  <script src="js/ejs.js"></script>
+  <script>var chapNum = 17;var sandboxLoadFiles = ["js/17_http.js", "js/promise.js"];</script>
+</head>
+
+<article>
+<nav>
+  <a href="16_canvas.html" title="previous chapter">⬅</a>
+  <a href="index.html" title="cover">⬆</a>
+  <a href="18_forms.html" title="next chapter">➡</a>
+</nav>
+
+<h1><div class=chap_num>Chapter 17</div>HTTP</h1>
+<blockquote>
+<p><a class=p_ident id="p_QvqpbswJB1" href="#p_QvqpbswJB1"></a>The dream behind the Web is of a common information space in which we
+communicate by sharing information. Its universality is essential: the
+fact that a hypertext link can point to anything, be it personal,
+local or global, be it draft or highly polished.</p>
+ <footer>Tim Berners-Lee, <cite>The World Wide Web: A very short personal history</cite></footer>
+</blockquote>
+<p><a class=p_ident id="p_dHze9jp8j0" href="#p_dHze9jp8j0"></a>The <em>Hyper-Text Transfer Protocol</em>, already mentioned in Chapter 12,
+is the mechanism through which data is requested and provided on the
+World Wide Web. This chapter describes this protocol in more detail,
+and explains the way browser JavaScript has access to it.</p>
+<h2 id="_the_protocol">The protocol</h2>
+<p><a class=p_ident id="p_4PDYSIwr1g" href="#p_4PDYSIwr1g"></a>As an example, imagine you type
+<em>http://eloquentjavascript.net/index.html</em> into your browser&#8217;s address
+bar. First, the browser looks up the address of the server associated
+with <code>eloquentjavascript.net</code>, and tries to open a TCP connection to
+it on port 80, the default port for HTTP traffic. If the server
+exists, and accepts the connection, the browser sends something like
+this:</p>
+<pre data-language="http" class="snippet cm-s-default"><a class=c_ident id="c_FiUD8odCzj" href="#c_FiUD8odCzj"></a><span class="cm-keyword">GET</span> <span class="cm-string-2">/index.html</span> <span class="cm-keyword">HTTP/1.1</span>
+<span class="cm-atom">Host:</span><span class="cm-string"> eloquentjavascript.net</span>
+<span class="cm-atom">User-Agent:</span><span class="cm-string"> Your browser's name</span></pre>
+<p><a class=p_ident id="p_QB08cb7m0V" href="#p_QB08cb7m0V"></a>After which the server responds, through that same connection:</p>
+<pre data-language="http" class="snippet cm-s-default"><a class=c_ident id="c_CTOCGydIu+" href="#c_CTOCGydIu+"></a><span class="cm-keyword">HTTP/1.1</span> <span class="cm-positive cm-success">200</span> OK
+<span class="cm-atom">Content-Length:</span><span class="cm-string"> 3122</span>
+<span class="cm-atom">Content-Type:</span><span class="cm-string"> text/html</span>
+<span class="cm-atom">Last-Modified:</span><span class="cm-string"> Wed, 09 Apr 2014 10:48:09 GMT</span>
+
+&lt;!doctype html>
+... the rest of the document</pre>
+<p><a class=p_ident id="p_RRCiB3G5cb" href="#p_RRCiB3G5cb"></a>The browser then takes the part of the response below the blank line,
+and displays it as an HTML document.</p>
+<p><a class=p_ident id="p_EF5P7+qf9n" href="#p_EF5P7+qf9n"></a>The information sent by the client is called the <em>request</em>. It starts
+with this line:</p>
+<pre data-language="http" class="snippet cm-s-default"><a class=c_ident id="c_rzoKLYuK81" href="#c_rzoKLYuK81"></a><span class="cm-keyword">GET</span> <span class="cm-string-2">/index.html</span> <span class="cm-keyword">HTTP/1.1</span></pre>
+<p><a class=p_ident id="p_0OgmCKjRs2" href="#p_0OgmCKjRs2"></a>The first word is the <em>method</em> of the request. <code>GET</code> means that we
+want to <em>get</em> the specified resource. Other common methods are
+<code>DELETE</code> to delete a resource, <code>PUT</code> to replace it, and <code>POST</code> to send
+information to it. Note that the server is not obliged to carry out
+every request it gets. If you walk up to a random website and tell it
+to <code>DELETE</code> its main page, it&#8217;ll probably refuse.</p>
+<p><a class=p_ident id="p_dRtHLefq7L" href="#p_dRtHLefq7L"></a>The part after the method name is the path of the resource the request
+applies to. In the simplest case, a resource is simply a file on the
+server. But the protocol doesn&#8217;t require it to be: it may be anything
+that can be transferred <em>as if</em> it is a file. Many servers generate
+the responses they produce on the fly. For example, if you open
+<em>http://twitter.com/marijnjh</em>, the server looks in its database for a
+user named “marijnjh”, and if it finds one, it will generate a profile
+page for that user.</p>
+<p><a class=p_ident id="p_M95qaU9kuN" href="#p_M95qaU9kuN"></a>After the resource path, the first line of the request mentions
+<code>HTTP/1.1</code>, to indicate the version of the HTTP protocol it is using.</p>
+<p><a class=p_ident id="p_pIMelD1mZh" href="#p_pIMelD1mZh"></a>The server&#8217;s response will start with a version as well, followed by
+the status of the response, first as a three-digit code, and then as a
+human-readable string.</p>
+<pre data-language="http" class="snippet cm-s-default"><a class=c_ident id="c_0nHloyp4nW" href="#c_0nHloyp4nW"></a><span class="cm-keyword">HTTP/1.1</span> <span class="cm-positive cm-success">200</span> OK</pre>
+<p><a class=p_ident id="p_UmcljLe0oy" href="#p_UmcljLe0oy"></a>Codes starting with a 2 indicate that the request succeeded. Codes
+starting with a 4 mean there was something wrong with the request. 404
+is probably the most famous HTTP status code—it means that the
+resource that was requested could not be found. Codes that start with
+5 mean an error occurred that the server, rather than the request, is
+to blame for.</p>
+<p><a class=p_ident id="p_CA64oLhdLd" href="#p_CA64oLhdLd"></a>The first line of a request or response may be followed by any number
+of <em>headers</em>. These are lines in the form “name: value” that specify
+extra information about the request or response. These headers were
+part of the example response:</p>
+<pre>Content-Length: 3122
+Content-Type: text/html
+Last-Modified: Wed, 09 Apr 2014 10:48:09 GMT</pre>
+<p><a class=p_ident id="p_04zcUGZ8sT" href="#p_04zcUGZ8sT"></a>This tells us the size and type of the document that is being
+returned. In this case, an HTML document of 3122 bytes. It also tells
+us when that document was last modified.</p>
+<p><a class=p_ident id="p_hhW0Pi0LI6" href="#p_hhW0Pi0LI6"></a>Which headers to include in a request or a response is mostly up to
+the client or server sending it, though a few are required. For
+example, the <code>Host</code> header in a request, which specifies the host name,
+should be included, because a server might be serving multiple host
+names on a single IP address, and without that header it won&#8217;t know
+which one the client is trying to talk to.</p>
+<p><a class=p_ident id="p_DeF17lBSIn" href="#p_DeF17lBSIn"></a>After the headers, both requests and responses may include a blank
+line followed by a <em>body</em>, which contains the data being sent. <code>GET</code>
+or <code>DELETE</code> request don&#8217;t send along any data, but <code>PUT</code> or <code>POST</code>
+requests are expected to. Similarly, some response types, such as
+error responses, do not require a body.</p>
+<h2 id="_browsers_and_http">Browsers and HTTP</h2>
+<p><a class=p_ident id="p_FaMpawa4Gl" href="#p_FaMpawa4Gl"></a>As we saw in the example, a browser will make a request when we enter
+a URL in its address bar. When the resulting HTML page references
+other files, such as images and JavaScript files those are also
+fetched.</p>
+<p><a class=p_ident id="p_H5hfE5XTVU" href="#p_H5hfE5XTVU"></a>A moderately complicated website can easily include anywhere from ten
+to two hundred resources. To be able to fetch those quickly, browsers
+will open several requests simultaneously, rather than waiting for the
+responses one at a time.</p>
+<p><a class=p_ident id="p_6xCjw3miwb" href="#p_6xCjw3miwb"></a>Fetching such documents is always done using <code>GET</code> requests.</p>
+<p><a class=p_ident id="p_3O0+MoUdnI" href="#p_3O0+MoUdnI"></a>Generating <code>POST</code> requests in a browser is also a common thing to do.
+HTML pages may include <em>forms</em>, which allow the user to fill out
+information and send it to the server. This is an example of a form:</p>
+<pre data-language="text/html" class="snippet cm-s-default"><a class=c_ident id="c_2RmnjmStno" href="#c_2RmnjmStno"></a><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">form</span> <span class="cm-attribute">method</span>=<span class="cm-string">"GET"</span> <span class="cm-attribute">action</span>=<span class="cm-string">"example/message.html"</span><span class="cm-tag cm-bracket">></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">></span>Name: <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">input</span> <span class="cm-attribute">type</span>=<span class="cm-string">"text"</span> <span class="cm-attribute">name</span>=<span class="cm-string">"name"</span><span class="cm-tag cm-bracket">>&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">></span>Message:<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">br</span><span class="cm-tag cm-bracket">>&lt;</span><span class="cm-tag">textarea</span> <span class="cm-attribute">name</span>=<span class="cm-string">"message"</span><span class="cm-tag cm-bracket">>&lt;/</span><span class="cm-tag">textarea</span><span class="cm-tag cm-bracket">>&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">>&lt;</span><span class="cm-tag">button</span> <span class="cm-attribute">type</span>=<span class="cm-string">"submit"</span><span class="cm-tag cm-bracket">></span>Send<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">button</span><span class="cm-tag cm-bracket">>&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">></span>
+<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">form</span><span class="cm-tag cm-bracket">></span></pre>
+<p><a class=p_ident id="p_l9fi+Tr5P3" href="#p_l9fi+Tr5P3"></a>That will show two fields, a small one asking for a name, and a larger
+one to write a message in. When you press the “Send” button, the
+information in the fields will be encoded into a <em>query string</em>. When
+the <code>&lt;form&gt;</code> element&#8217;s <code>method</code> attribute is <code>GET</code> (or is omitted),
+that query string is tacked onto the <code>action</code> URL, and the browser
+makes a <code>GET</code> request to that URL.</p>
+<pre data-language="text/html" class="snippet cm-s-default"><a class=c_ident id="c_fClpteKW4d" href="#c_fClpteKW4d"></a>GET /example/message.html?name=Jean<span class="cm-error">&amp;message</span>=Yes%3F HTTP/1.1</pre>
+<p><a class=p_ident id="p_ExLzsDAoPr" href="#p_ExLzsDAoPr"></a>The start of a query string is indicated by a question mark. After
+that follow pairs of names and values, corresponding to the <code>name</code>
+attribute on the form field elements, and the content of those
+elements. The ampersand (“&amp;”) is used to separate the pairs.</p>
+<p><a class=p_ident id="p_UJEBiUYsjW" href="#p_UJEBiUYsjW"></a>The actual message encoded in the URL above is “Yes?”. Some characters
+in query strings must be escaped. The question mark is one of those,
+and is represented as <code>%3F</code>. There seems to be an unwritten rule that
+every format needs its own different way of escaping characters. This
+one, called “URL encoding”, uses a percent sign followed by two
+hexadecimal digits which encode the character code. In this case 3F,
+which is 63 in decimal notation, is the code of a question mark
+character.</p>
+<p><a class=p_ident id="p_l15d9HkVlZ" href="#p_l15d9HkVlZ"></a>If we change the <code>method</code> attribute of the form above to <code>POST</code>, the
+HTTP request made to submit the form will use the <code>POST</code> method, and
+put the query string in body of the request, rather than adding it to
+the URL.</p>
+<pre data-language="http" class="snippet cm-s-default"><a class=c_ident id="c_7NZtkGK1/R" href="#c_7NZtkGK1/R"></a><span class="cm-keyword">POST</span> <span class="cm-string-2">/example/message.html</span> <span class="cm-keyword">HTTP/1.1</span>
+<span class="cm-atom">Content-length:</span><span class="cm-string"> 24</span>
+<span class="cm-atom">Content-type:</span><span class="cm-string"> application/x-www-form-urlencoded</span>
+
+name=Jean&amp;message=Yes%3F</pre>
+<p><a class=p_ident id="p_mOjZBRUuCo" href="#p_mOjZBRUuCo"></a>The next chapter will come back to forms, and talk about the way we
+can script them with JavaScript.</p>
+<h2 id="_historical_accident">Historical accident</h2>
+<p><a class=p_ident id="p_sEiPS/dTmx" href="#p_sEiPS/dTmx"></a>The interface through which browser JavaScript can make HTTP requests
+is called <code>XMLHttpRequest</code> (note the inconsisten capitalization). It
+was designed by Microsoft, for their Internet Explorer browser, in the
+late 1990s. During this time, in the world of business software (a
+world which Microsoft has always been at home in) the XML file format
+was <em>very</em> popular. So popular that the word “XML” was tacked onto the
+front of the name of an interface for HTTP, which is in no way tied to
+XML.</p>
+<p><a class=p_ident id="p_ED7N2rpOmD" href="#p_ED7N2rpOmD"></a>The name isn&#8217;t completely nonsensical. There is functionality for
+parsing a response as an XML file built into the interface. Confusing
+two distinct concepts (making a request and parsing the response) into
+a single thing is terrible design, of course, but so it goes.</p>
+<p><a class=p_ident id="p_38R54jUZ8/" href="#p_38R54jUZ8/"></a>When the <code>XMLHttpRequest</code> interface was added to Internet Explorer, it
+allowed people to do things with JavaScript that had been very hard
+before. One thing that made ripples at the time was the ability to
+show suggestions when the user is typing something into a text field.
+The script would send the text typed to the server over HTTP, and the
+server, which had some database of things that the user might mean,
+would match those against the partial input, and send back possible
+completions. These were then shown to the user. This was mind-blowing,
+at a time where people were used to every interaction with a website
+requiring a full page reload.</p>
+<p><a class=p_ident id="p_yNW5lu4ilN" href="#p_yNW5lu4ilN"></a>The other significant browser of the time, Mozilla (later Firefox) did
+not want to be left behind. To allow people to do similarly neat
+things in <em>their</em> browser, they copied the interface, including the
+bogus name. The next generation of browsers followed this example, and
+today <code>XMLHttpRequest</code> is a de facto standard interface.</p>
+<h2 id="_sending_a_request">Sending a request</h2>
+<p><a class=p_ident id="p_EQKwKXO14E" href="#p_EQKwKXO14E"></a>To make a simple request, we create a request object with the
+<code>XMLHttpRequest</code> constructor, and call its <code>open</code> and <code>send</code> methods.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_S4pyLFcZea" href="#c_S4pyLFcZea"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/data.txt"</span>, <span class="cm-atom">false</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">req</span>.<span class="cm-property">responseText</span>);
+<span class="cm-comment">// → This is the content of data.txt</span></pre>
+<p><a class=p_ident id="p_wgyJl8Iwi6" href="#p_wgyJl8Iwi6"></a>The <code>open</code> method configures the request. In this case, we choose to
+make a <code>GET</code> request for the <em>example/data.txt</em> file. URLs that don&#8217;t
+start with <em>http://</em> are called relative, which means that they are
+interpreted relative to the current document. When they start with a
+slash (“/”), they replace the current path (the part after the server
+name). When they do not, the part of the current path up to and
+including its last slash character is put in front of the relative
+URL.</p>
+<p><a class=p_ident id="p_AodYq0EUqt" href="#p_AodYq0EUqt"></a>After opening the request, we can send it with the <code>send</code> method. The
+argument to send is the request body. For <code>GET</code> requests, we can pass
+null. If the third argument to <code>open</code> was <code>false</code>, <code>send</code> will only
+return after the response to our request was received. We can read the
+request object&#8217;s <code>responseText</code> property to get the response body.</p>
+<p><a class=p_ident id="p_1NRmaNXY6a" href="#p_1NRmaNXY6a"></a>The other information included in the response can also be extracted
+from this object. The status code is accessible through the <code>status</code>
+property, and the status text through <code>statusText</code>. Headers can be
+read with <code>getResponseHeader</code> (which expects a header name as
+argument, and returns the header&#8217;s value) and <code>getAllResponseHeaders</code>
+(which returns a string containing all headers).</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_7D9Ia+cyzu" href="#c_7D9Ia+cyzu"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/data.txt"</span>, <span class="cm-atom">false</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">req</span>.<span class="cm-property">status</span>, <span class="cm-variable">req</span>.<span class="cm-property">statusText</span>);
+<span class="cm-comment">// → 200 OK</span>
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">req</span>.<span class="cm-property">getResponseHeader</span>(<span class="cm-string">"content-type"</span>));
+<span class="cm-comment">// → text/plain</span></pre>
+<p><a class=p_ident id="p_MaWZkn+6yj" href="#p_MaWZkn+6yj"></a>Headers names are case-insensitive. They are usually written with a
+capital letter at the start of each word, such as “Content-Type”, but
+“content-type” or “cOnTeNt-TyPe” refer to the same header.</p>
+<p><a class=p_ident id="p_UkSLHXvU3D" href="#p_UkSLHXvU3D"></a>The browser will automatically add some request headers, such as
+“Host” and those needed for the server to figure out the size of the
+body. But you can add your own headers with the <code>setRequestHeader</code>
+method. This is only needed for advanced uses, and requires the
+cooperation of the server you are talking to—a server is free to
+ignore headers it does not know how to handle.</p>
+<h2 id="_asynchronous_requests">Asynchronous Requests</h2>
+<p><a class=p_ident id="p_dcDszHwK0z" href="#p_dcDszHwK0z"></a>In the examples we saw, the call to <code>send</code> does not return until the
+request has finished. This is convenient, because it means properties
+like <code>responseText</code> are available immediately. But it does mean that
+our program is suspended as long as the browser and server are
+communicating. When the connection is bad, the server is slow, or the
+file is big, that might take quite a while. Worse, because no event
+handlers can fire while our program is suspended, the whole document
+will become unresponsive. This is bad.</p>
+<p><a class=p_ident id="p_zjXoJQW9df" href="#p_zjXoJQW9df"></a>If we pass <code>true</code> as the third argument to <code>open</code>, the request is
+<em>asynchronous</em>. That means that when we call <code>send</code>, the only thing
+that happens right away is that the request gets scheduled to be sent.
+Our program can continue, and the browser will take care of the
+sending and receiving of data in the background.</p>
+<p><a class=p_ident id="p_4WsIyXtb4Y" href="#p_4WsIyXtb4Y"></a>But as long as the request is running, we won&#8217;t be able to access the
+response. We need a mechanism that will notify us when the data is
+available.</p>
+<p><a class=p_ident id="p_icR3wVhR/6" href="#p_icR3wVhR/6"></a>For this, we must listen for the <code>"load"</code> event on the request object.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_Hhajlonku9" href="#c_Hhajlonku9"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/data.txt"</span>, <span class="cm-atom">true</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"load"</span>, <span class="cm-keyword">function</span>() {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Done:"</span>, <span class="cm-variable">req</span>.<span class="cm-property">status</span>);
+});
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);</pre>
+<p><a class=p_ident id="p_IBituGkME2" href="#p_IBituGkME2"></a>This again forces us to use an asynchronous style of programming,
+wrapping the things that have to be done after the request in a
+function, and arranging for that to be called at the appropriate time.
+We will come back to this later.</p>
+<h2 id="_fetching_xml_data">Fetching XML Data</h2>
+<p><a class=p_ident id="p_osGyJ0w/+I" href="#p_osGyJ0w/+I"></a>When the file retrieved by an <code>XMLHttpRequest</code> object is an XML
+document, the object&#8217;s <code>responseXML</code> property will hold a parsed
+representation of this document. This representation works much like
+the DOM discussed in Chapter 13, except that it doesn&#8217;t have
+HTML-specific functionality like the <code>style</code> property. The object that
+<code>responseXML</code> holds corresponds to the <code>document</code> object. Its
+<code>documentElement</code> property refers to the outer tag of the XML
+document. In the document below (<em>example/fruit.xml</em>), that would
+would be the <code>&lt;fruits&gt;</code> tag.</p>
+<pre data-language="application/xml" class="snippet cm-s-default"><a class=c_ident id="c_8mEhBhkv6J" href="#c_8mEhBhkv6J"></a><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">fruits</span><span class="cm-tag cm-bracket">></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">fruit</span> <span class="cm-attribute">name</span>=<span class="cm-string">"banana"</span> <span class="cm-attribute">color</span>=<span class="cm-string">"yellow"</span><span class="cm-tag cm-bracket">/></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">fruit</span> <span class="cm-attribute">name</span>=<span class="cm-string">"lemon"</span> <span class="cm-attribute">color</span>=<span class="cm-string">"yellow"</span><span class="cm-tag cm-bracket">/></span>
+  <span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">fruit</span> <span class="cm-attribute">name</span>=<span class="cm-string">"cherry"</span> <span class="cm-attribute">color</span>=<span class="cm-string">"red"</span><span class="cm-tag cm-bracket">/></span>
+<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">fruits</span><span class="cm-tag cm-bracket">></span></pre>
+<p><a class=p_ident id="p_f9Q1sguhZ0" href="#p_f9Q1sguhZ0"></a>We can retrieve it like this:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_vkLnjsVdpV" href="#c_vkLnjsVdpV"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/fruit.xml"</span>, <span class="cm-atom">false</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">req</span>.<span class="cm-property">responseXML</span>.<span class="cm-property">querySelectorAll</span>(<span class="cm-string">"fruit"</span>).<span class="cm-property">length</span>);
+<span class="cm-comment">// → 3</span></pre>
+<p><a class=p_ident id="p_4TS/NcWCcp" href="#p_4TS/NcWCcp"></a>XML documents can be used to exchange structured information with the
+server. Their form—tags nested inside other tags—lends itself well to
+storing most types of data, or at least better than flat text files.
+The DOM interface is rather clumsy for extracting information, though,
+and XML documents tend to be verbose. It is often a better idea to
+communicate using JSON data.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_b665cw/Yoz" href="#c_b665cw/Yoz"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/fruit.json"</span>, <span class="cm-atom">false</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">JSON</span>.<span class="cm-property">parse</span>(<span class="cm-variable">req</span>.<span class="cm-property">responseText</span>));
+<span class="cm-comment">// → {banana: "yellow", lemon: "yellow", cherry: "red"}</span></pre>
+<h2 id="_http_sandboxing">HTTP sandboxing</h2>
+<p><a class=p_ident id="p_RMl+jfbkqI" href="#p_RMl+jfbkqI"></a>Making HTTP requests in web page scripts once again raises concerns
+about security. The person who controls the script might not have the
+same interests as the person on whose computer it is running. More
+specifically, if I visit themafia.org, I do not want its scripts to be
+able to make a request to mybank.com, using identifying information
+from my browser, with instructions to transfer all my money to some
+random mafia account.</p>
+<p><a class=p_ident id="p_pZa2m2DP58" href="#p_pZa2m2DP58"></a>It is not too hard for websites to protect themselves against such
+events, but it requires effort, and many websites fail to do it. For
+this reason, browsers protect us by disallowing scripts to make HTTP
+requests to other domains (names like themafia.org and mybank.com).</p>
+<p><a class=p_ident id="p_woy6sGGz0I" href="#p_woy6sGGz0I"></a>This can be an annoying problem when building systems that want to
+access other domains for legitimate reasons. It is possible for
+servers to include a header like this in their response to explicitly
+indicate to browsers that it is okay for the request to come from a
+different domain:</p>
+<pre>Access-Control-Allow-Origin: *</pre>
+<h2 id="_abstracting_requests">Abstracting requests</h2>
+<p><a class=p_ident id="p_3R01AAt3PW" href="#p_3R01AAt3PW"></a>In Chapter 10, in our implementation of the AMD module system, we used
+a hypothetical function called <code>backgroundReadFile</code>. It took a
+file name and a function, and called that function with the contents of
+the file when it had finished fetching it. Here&#8217;s a simple
+implementation of that function:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_tqHpWiA3IO" href="#c_tqHpWiA3IO"></a><span class="cm-keyword">function</span> <span class="cm-variable">backgroundReadFile</span>(<span class="cm-def">url</span>, <span class="cm-def">callback</span>) {
+  <span class="cm-keyword">var</span> <span class="cm-def">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+  <span class="cm-variable-2">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-variable-2">url</span>, <span class="cm-atom">true</span>);
+  <span class="cm-variable-2">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"load"</span>, <span class="cm-keyword">function</span>() {
+    <span class="cm-keyword">if</span> (<span class="cm-variable-2">req</span>.<span class="cm-property">status</span> <span class="cm-operator">&lt;</span> <span class="cm-number">400</span>)
+      <span class="cm-variable-2">callback</span>(<span class="cm-variable-2">req</span>.<span class="cm-property">responseText</span>);
+  });
+  <span class="cm-variable-2">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+}</pre>
+<p><a class=p_ident id="p_SuvGa4TZyK" href="#p_SuvGa4TZyK"></a>This simple abstraction makes it easier to use <code>XMLHttpRequest</code> for
+simple <code>GET</code> requests. If you are writing a program that has to make
+HTTP requests, it is a good idea to use a helper function, so that you
+don&#8217;t end up repeating the same pattern over and over.</p>
+<p><a class=p_ident id="p_8Shcg3/WzI" href="#p_8Shcg3/WzI"></a>The function argument&#8217;s name, <code>callback</code>, is a term that is often used
+to describe functions like this. A callback function is given to other
+code to provide that code with a way to “call us back” later.</p>
+<p><a class=p_ident id="p_xKwFWu3zF0" href="#p_xKwFWu3zF0"></a>It is not hard to write your own, tailored to what your application is
+doing. The above one only does <code>GET</code> requests, and doesn&#8217;t give us
+control over the headers or the request body. You could write another
+variant for <code>POST</code> requests, or a more generic one that supports
+various kinds of requests. Many JavaScript libraries also provide with
+wrappers for <code>XMLHttpRequest</code>.</p>
+<p><a class=p_ident id="p_QGLIndG64f" href="#p_QGLIndG64f"></a>The main problem with the wrapper above is its handling of failure.
+When the request returns a status code that indicates an error (400
+and up), it just logs something to the console and bails out.
+Sometimes, this is okay, but imagine, for example, we put a “loading”
+indicator on the page to indicate that we are fetching information. If
+the request fails, because the server crashed or the connection is
+briefly interrupted, the page will just sit there, misleadingly
+looking like it is doing something. The user will wait for a while,
+get impatient, and hate us.</p>
+<p><a class=p_ident id="p_GM6g10t1uS" href="#p_GM6g10t1uS"></a>We should also have an option to be notified when the request fails,
+so that we can take appropriate action—for example, remove the
+“loading” message and inform the user that something went wrong.</p>
+<p><a class=p_ident id="p_qQG5mkGJ5M" href="#p_qQG5mkGJ5M"></a>Error handling in asynchronous code is even more tricky than error
+handling in synchronous code. Because we often need to defer part of
+our work, putting it in a callback function, the scope of a <code>try</code>
+block becomes meaningless. In the code below, the exception will <em>not</em>
+be caught, because the call to <code>backgroundReadFile</code> returns
+immediately. Control then leaves the <code>try</code> block, and the function it
+was given won&#8217;t be called until later.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_BOjAGQyuin" href="#c_BOjAGQyuin"></a><span class="cm-keyword">try</span> {
+  <span class="cm-variable">backgroundReadFile</span>(<span class="cm-string">"example/data.txt"</span>, <span class="cm-keyword">function</span>(<span class="cm-def">text</span>) {
+    <span class="cm-keyword">if</span> (<span class="cm-variable-2">text</span> <span class="cm-operator">!=</span> <span class="cm-string">"expected"</span>)
+      <span class="cm-keyword">throw</span> <span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"That was unexpected"</span>);
+  });
+} <span class="cm-keyword">catch</span> (<span class="cm-def">e</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Hello from the catch block"</span>);
+}</pre>
+<p><a class=p_ident id="p_xQdKWk/AOA" href="#p_xQdKWk/AOA"></a>To handle failing requests, we have to allow an additional function to
+be passed to our wrapper, and call that when a request goes wrong. Or
+alternatively, we can use the convention that if the request fails, an
+additional argument describing the problem is passed to the regular
+callback function. For example:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_/H3tDYVfRc" href="#c_/H3tDYVfRc"></a><span class="cm-keyword">function</span> <span class="cm-variable">getURL</span>(<span class="cm-def">url</span>, <span class="cm-def">callback</span>) {
+  <span class="cm-keyword">var</span> <span class="cm-def">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+  <span class="cm-variable-2">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-variable-2">url</span>, <span class="cm-atom">true</span>);
+  <span class="cm-variable-2">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"load"</span>, <span class="cm-keyword">function</span>() {
+    <span class="cm-keyword">if</span> (<span class="cm-variable-2">req</span>.<span class="cm-property">status</span> <span class="cm-operator">&lt;</span> <span class="cm-number">400</span>)
+      <span class="cm-variable-2">callback</span>(<span class="cm-variable-2">req</span>.<span class="cm-property">responseText</span>);
+    <span class="cm-keyword">else</span>
+      <span class="cm-variable-2">callback</span>(<span class="cm-atom">null</span>, <span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"Request failed: "</span> <span class="cm-operator">+</span>
+                               <span class="cm-variable-2">req</span>.<span class="cm-property">statusText</span>));
+  });
+  <span class="cm-variable-2">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"error"</span>, <span class="cm-keyword">function</span>() {
+    <span class="cm-variable-2">callback</span>(<span class="cm-atom">null</span>, <span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"Network error"</span>));
+  });
+  <span class="cm-variable-2">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+}</pre>
+<p><a class=p_ident id="p_OwEcgNZRXQ" href="#p_OwEcgNZRXQ"></a>We have added a handler for the <code>"error"</code> event, which will be
+signaled when the request fails entirely. We also call the callback
+function with an error argument when the request completes with a
+status code that indicates an error.</p>
+<p><a class=p_ident id="p_nye9N1QULd" href="#p_nye9N1QULd"></a>Code using <code>getURL</code> must then check whether an error was given, and if
+it finds one, handle it.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_V6+MDOjkL1" href="#c_V6+MDOjkL1"></a><span class="cm-variable">getURL</span>(<span class="cm-string">"data/nonsense.txt"</span>, <span class="cm-keyword">function</span>(<span class="cm-def">content</span>, <span class="cm-def">error</span>) {
+  <span class="cm-keyword">if</span> (<span class="cm-variable-2">error</span> <span class="cm-operator">!=</span> <span class="cm-atom">null</span>)
+    <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Failed to fetch nonsense.txt: "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">error</span>);
+  <span class="cm-keyword">else</span>
+    <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"nonsense.txt: "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">content</span>);
+});</pre>
+<p><a class=p_ident id="p_j4unfsTO1z" href="#p_j4unfsTO1z"></a>This does not help when it comes to exceptions. When chaining several
+asynchronous actions together, an exception at any point of the chain
+will still, unless you wrap each handling function in its own
+<code>try</code>/<code>catch</code> block, land at the top level and abort your chain of
+actions.</p>
+<h2 id="_promises">Promises</h2>
+<p><a class=p_ident id="p_v7YfQvxwuV" href="#p_v7YfQvxwuV"></a>For complicated projects, writing asynchronous code in plain callback
+back is hard to do correctly. It is easy to forget to check for an
+error, or to allow an unexpected exception to cut the program short in
+a crude way. Additionally, arranging for correct error handling when
+the error has to flow through multiple callback functions and <code>catch</code>
+blocks is tedious.</p>
+<p><a class=p_ident id="p_mO96gXoG0q" href="#p_mO96gXoG0q"></a>There have been a lot of attempts to solve this with extra
+abstractions. One of the most successful ones is called <em>promises</em>.
+Promises wrap an asynchronous action in an object, which can be passed
+around and told to do certain things when the action finishes or
+fails. They are set to become a part of the next version of the
+JavaScript language, but can already be used as a library.</p>
+<p><a class=p_ident id="p_8Yr+tElrV2" href="#p_8Yr+tElrV2"></a>The interface for promises is somewhat non-obvious, but very powerful.
+This chapter will only roughly describe it. A more thorough treatment
+can be found at
+<a href="http://www.html5rocks.com/en/tutorials/es6/promises"><em>www.html5rocks.com/en/tutorials/es6/promises</em></a>.</p>
+<p><a class=p_ident id="p_JxpiCLDcQ3" href="#p_JxpiCLDcQ3"></a>To create a promise object, we call the <code>Promise</code> constructor, giving
+it a function that will initialize the asynchronous action. The
+constructor calls that function, passing it two arguments, which are
+themselves functions. The first should be called when the action
+finishes successfully, and the second when it fails.</p>
+<p><a class=p_ident id="p_hPLVJOC3X6" href="#p_hPLVJOC3X6"></a>Here is once again our wrapper for <code>GET</code> requests, this time returning
+a promise. We&#8217;ll simply call it <code>get</code>, this time.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_9Fz3DfRQnG" href="#c_9Fz3DfRQnG"></a><span class="cm-keyword">function</span> <span class="cm-variable">get</span>(<span class="cm-def">url</span>) {
+  <span class="cm-keyword">return</span> <span class="cm-keyword">new</span> <span class="cm-variable">Promise</span>(<span class="cm-keyword">function</span>(<span class="cm-def">succeed</span>, <span class="cm-def">fail</span>) {
+    <span class="cm-keyword">var</span> <span class="cm-def">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+    <span class="cm-variable-2">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-variable-2">url</span>, <span class="cm-atom">true</span>);
+    <span class="cm-variable-2">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"load"</span>, <span class="cm-keyword">function</span>() {
+      <span class="cm-keyword">if</span> (<span class="cm-variable-2">req</span>.<span class="cm-property">status</span> <span class="cm-operator">&lt;</span> <span class="cm-number">400</span>)
+        <span class="cm-variable-2">succeed</span>(<span class="cm-variable-2">req</span>.<span class="cm-property">responseText</span>);
+      <span class="cm-keyword">else</span>
+        <span class="cm-variable-2">fail</span>(<span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"Request failed: "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">req</span>.<span class="cm-property">statusText</span>));
+    });
+    <span class="cm-variable-2">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"error"</span>, <span class="cm-keyword">function</span>() {
+      <span class="cm-variable-2">fail</span>(<span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"Network error"</span>));
+    });
+    <span class="cm-variable-2">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);
+  });
+}</pre>
+<p><a class=p_ident id="p_RE/bEoSIjp" href="#p_RE/bEoSIjp"></a>Note that the interface to the function itself is now a lot simpler.
+You give it a URL, and it returns a promise. That promise is a
+<em>handle</em> to the request&#8217;s outcome. It has a <code>then</code> method that you can
+call with two functions, one to handle success, and one to handle
+failure.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_6FFNJj/UTy" href="#c_6FFNJj/UTy"></a><span class="cm-variable">get</span>(<span class="cm-string">"example/data.txt"</span>).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">text</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"data.txt: "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">text</span>);
+}, <span class="cm-keyword">function</span>(<span class="cm-def">error</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Failed to fetch data.txt: "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">error</span>);
+});</pre>
+<p><a class=p_ident id="p_4O6znqfcpb" href="#p_4O6znqfcpb"></a>So far, this is just a different way to express the same thing we
+already expressed before. It is only when you need to chain actions
+together that they make a significant difference.</p>
+<p><a class=p_ident id="p_uiJcYJELKb" href="#p_uiJcYJELKb"></a>Calling <code>then</code> produces a new promise, whose result (the value passed
+to success handlers) depends on the return value of the first function
+we passed to <code>then</code>. If this function returns another promise, that
+promise is “connected” to the one returned by <code>then</code>—its success or
+failure is passed on to the <code>then</code> promise. If the handler returns a
+normal, non-promise value, the output promise immediately succeeds,
+with that value as its result.</p>
+<p><a class=p_ident id="p_wC6ZA4AmWr" href="#p_wC6ZA4AmWr"></a>This means you can transform the result of a promise. For example,
+this returns a promise whose result is the content of the given URL,
+parsed as JSON.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_iYJTxgzQ/r" href="#c_iYJTxgzQ/r"></a><span class="cm-keyword">function</span> <span class="cm-variable">getJSON</span>(<span class="cm-def">url</span>) {
+  <span class="cm-keyword">return</span> <span class="cm-variable">get</span>(<span class="cm-variable-2">url</span>).<span class="cm-property">then</span>(<span class="cm-variable">JSON</span>.<span class="cm-property">parse</span>);
+}</pre>
+<p><a class=p_ident id="p_aeTao87vYp" href="#p_aeTao87vYp"></a>That last call to <code>then</code> did not specify a failure handler. This is
+allowed. The error will be passed on to the promise returned by
+<code>then</code>, which is exactly what we want—<code>getJSON</code> does not know what to
+do when something goes wrong, but its caller hopefully does.</p>
+<p><a class=p_ident id="p_xh6XPjbZAz" href="#p_xh6XPjbZAz"></a>As an example of a suitable use of promises, we will build a program
+that fetches a number of JSON files from the server, and, while it is
+doing that, shows the word “loading”. The JSON files contain
+information about people, with links to files that represent other
+people in properties like <code>father</code>, <code>mother</code>, or <code>spouse</code>.</p>
+<p><a class=p_ident id="p_JBcCWCd0HV" href="#p_JBcCWCd0HV"></a>We want to get the name of the mother of the spouse of
+<em>example/bert.json</em>. And if something goes wrong, we want to remove
+the “loading” text and show an error message instead. Here is how that
+might be done with promises:</p>
+<pre data-language="text/html" class="snippet cm-s-default"><a class=c_ident id="c_zMcKhkQ9Th" href="#c_zMcKhkQ9Th"></a><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">script</span><span class="cm-tag cm-bracket">></span>
+  <span class="cm-keyword">function</span> <span class="cm-variable">showMessage</span>(<span class="cm-def">msg</span>) {
+    <span class="cm-keyword">var</span> <span class="cm-def">elt</span> <span class="cm-operator">=</span> <span class="cm-variable">document</span>.<span class="cm-property">createElement</span>(<span class="cm-string">"div"</span>);
+    <span class="cm-variable-2">elt</span>.<span class="cm-property">textContent</span> <span class="cm-operator">=</span> <span class="cm-variable-2">msg</span>;
+    <span class="cm-keyword">return</span> <span class="cm-variable">document</span>.<span class="cm-property">body</span>.<span class="cm-property">appendChild</span>(<span class="cm-variable-2">elt</span>);
+  }
+
+  <span class="cm-keyword">var</span> <span class="cm-variable">loading</span> <span class="cm-operator">=</span> <span class="cm-variable">showMessage</span>(<span class="cm-string">"Loading..."</span>);
+  <span class="cm-variable">getJSON</span>(<span class="cm-string">"example/bert.json"</span>).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">bert</span>) {
+    <span class="cm-keyword">return</span> <span class="cm-variable">getJSON</span>(<span class="cm-variable-2">bert</span>.<span class="cm-property">spouse</span>);
+  }).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">spouse</span>) {
+    <span class="cm-keyword">return</span> <span class="cm-variable">getJSON</span>(<span class="cm-variable-2">spouse</span>.<span class="cm-property">mother</span>);
+  }).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">mother</span>) {
+    <span class="cm-variable">showMessage</span>(<span class="cm-string">"The name is "</span> <span class="cm-operator">+</span> <span class="cm-variable-2">mother</span>.<span class="cm-property">name</span>);
+  }).<span class="cm-property">catch</span>(<span class="cm-keyword">function</span>(<span class="cm-def">error</span>) {
+    <span class="cm-variable">showMessage</span>(<span class="cm-variable">String</span>(<span class="cm-variable-2">error</span>));
+  }).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>() {
+    <span class="cm-variable">document</span>.<span class="cm-property">body</span>.<span class="cm-property">removeChild</span>(<span class="cm-variable">loading</span>);
+  });
+<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">script</span><span class="cm-tag cm-bracket">></span></pre>
+<p><a class=p_ident id="p_jx/D3dcS2W" href="#p_jx/D3dcS2W"></a>The resulting program is relatively compact and readable. The <code>catch</code>
+method is similar to <code>then</code>, except that it only expects a failure
+handler, and will pass through the result unmodified in case of
+success. Much like with the <code>catch</code> clause for the <code>try</code> statement,
+control will continue as normal after the failure is caught, so that
+the final <code>then</code>, which removes the loading message, is always
+executed, even if something went wrong.</p>
+<p><a class=p_ident id="p_dhupj2EtcP" href="#p_dhupj2EtcP"></a>You can think of the promise interface as implementing its own
+language for asynchronous control flow. All the method calls and
+function expressions needed to achieve this make the code look
+somewhat awkward, but not remotely as awkward as it would look if we
+took care of all the error handing ourselves.</p>
+<h2 id="_appreciating_http">Appreciating HTTP</h2>
+<p><a class=p_ident id="p_dVrq2xCOfJ" href="#p_dVrq2xCOfJ"></a>When building a system that requires communication between a
+JavaScript program running in the browser (client-side) and a program
+on a server (server-side), there several different ways to model this
+communication.</p>
+<p><a class=p_ident id="p_f4x0TdEU2h" href="#p_f4x0TdEU2h"></a>A commonly used model is that of <em>remote procedure calls</em>. In this
+model, communication follows the patterns of normal function calls,
+except that the function is actually running on another machine.
+Calling it involves making a request to the server that includes the
+function&#8217;s name and arguments. The response to that request contains
+the returned value.</p>
+<p><a class=p_ident id="p_7z+OqsDVUu" href="#p_7z+OqsDVUu"></a>When thinking in terms of remote procedure calls, HTTP is just a
+vehicle for communication, and you will most likely write an
+abstraction layer that hides it entirely.</p>
+<p><a class=p_ident id="p_XJ1txrpZ7r" href="#p_XJ1txrpZ7r"></a>Another approach is to build your communication around the concept of
+resources and HTTP methods. Instead of a remote procedure called
+<code>addUser</code>, you use a <code>PUT</code> request to <code>/users/larry</code>. Instead of
+encoding that user&#8217;s properties in function arguments, you define a
+document format (or use an existing one) that represents the user, and
+use it as the body of this <code>PUT</code> request. Fetching a resource is done
+by making <code>GET</code> request to the resource&#8217;s URL, for example
+<code>/user/larry</code>, which returns the document representing that resource.</p>
+<p><a class=p_ident id="p_6PHqO+Vd0H" href="#p_6PHqO+Vd0H"></a>This second approach makes it easier to use some of the features that
+HTTP provides, such as support for caching resources (keeping a copy
+on the client side). It can also help the coherence of your interface,
+since resources are easier to reason about than a jumble of functions.</p>
+<h2 id="_security_and_https">Security and HTTPS</h2>
+<p><a class=p_ident id="p_YUIH84Ok2d" href="#p_YUIH84Ok2d"></a>Data traveling over the internet tends to follow a long, dangerous
+road. In order to get to its destination it must hop through anything
+from open coffee shop wireless networks, to networks controlled by
+various companies and states. At any point, it may be inspected, or
+even modified.</p>
+<p><a class=p_ident id="p_FkVKmUiG/R" href="#p_FkVKmUiG/R"></a>If it is important that something remain secret, such as the password
+to your email account, or that it arrive at its destination
+unmodified, such as the account number you transfer money to from your
+bank&#8217;s website, plain HTTP is not good enough.</p>
+<p><a class=p_ident id="p_s1KEZa2j+E" href="#p_s1KEZa2j+E"></a>The secure HTTP protocol, whose URLs start with <code>https:</code>, wraps HTTP
+traffic in a way that makes it harder to read and tamper with. First,
+the client verifies that the server is who it claims to be, by
+requiring it to prove that is has a cryptographic certificate issued
+by one of the certificate authorities that the browser recognizes.
+Next, all data going over the connection is encrypted in a way that
+should prevent eavesdropping and tampering.</p>
+<p><a class=p_ident id="p_whG/pc2PK4" href="#p_whG/pc2PK4"></a>Thus, when it works right, HTTPS prevents both the situation where
+someone impersonates the website you were trying to talk to, and the
+situation where someone is snooping on your communication. It is not
+perfect, and there have been various incidents where HTTPS failed due
+to forged or stolen certificates and broken software. Still, plain
+HTTP is trivial to mess with, whereas breaking HTTPS requires the kind
+of effort that only states or sophisticated criminal organizations can
+hope to make.</p>
+<h2 id="_summary">Summary</h2>
+<p><a class=p_ident id="p_G5kRj6aFQa" href="#p_G5kRj6aFQa"></a>In this chapter, we saw that HTTP is a protocol for accessing
+resources over the Internet. A <em>client</em> sends a request, which
+contains a method (usually <code>GET</code>) and a path that identifies a
+resource. The <em>server</em> then decides what to do with the request, and
+responds with a status code and a response body. Both requests and
+responses may contain headers, providing additional information.</p>
+<p><a class=p_ident id="p_QYlJoeSssL" href="#p_QYlJoeSssL"></a>Browsers make <code>GET</code> requests to fetch the resources needed to display
+a web page. A web page may also contain forms, which allow information
+entered by the user to be sent along in the request made when the form
+is submitted. More on that in the next chapter.</p>
+<p><a class=p_ident id="p_taYkCAtnud" href="#p_taYkCAtnud"></a>The interface through which browser JavaScript can make HTTP requests
+is called <code>XMLHttpRequest</code>. You can usually ignore the “XML” part of
+that name (but you still have to type it). There are two ways in which
+it can be used—synchronous, which blocks everything until the request
+finishes, and asynchronous, which requires an event handler to notice
+that the response came in. In almost all cases, asynchronous is
+preferable. Making a request looks like this:</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_yQCwu4H4Rz" href="#c_yQCwu4H4Rz"></a><span class="cm-keyword">var</span> <span class="cm-variable">req</span> <span class="cm-operator">=</span> <span class="cm-keyword">new</span> <span class="cm-variable">XMLHttpRequest</span>();
+<span class="cm-variable">req</span>.<span class="cm-property">open</span>(<span class="cm-string">"GET"</span>, <span class="cm-string">"example/data.txt"</span>, <span class="cm-atom">true</span>);
+<span class="cm-variable">req</span>.<span class="cm-property">addEventListener</span>(<span class="cm-string">"load"</span>, <span class="cm-keyword">function</span>() {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-variable">req</span>.<span class="cm-property">statusCode</span>);
+});
+<span class="cm-variable">req</span>.<span class="cm-property">send</span>(<span class="cm-atom">null</span>);</pre>
+<p><a class=p_ident id="p_+TkoeLUgPt" href="#p_+TkoeLUgPt"></a>Asynchronous programming is tricky. <em>Promises</em> are an interface that
+makes it slightly easier, by helping route error conditions and
+exceptions to the right handler, and abstracting away some of the more
+repetetive and error-prone elements in this style of programming.</p>
+<h2 id="_exercises">Exercises</h2>
+<h3 id="_content_negotiation">Content negotiation</h3>
+<p><a class=p_ident id="p_4RSIQjkFSG" href="#p_4RSIQjkFSG"></a>One of the things that HTTP can do, but which we have not discussed in
+this chapter yet, is called <em>content negotiation</em>. The <code>Accept</code> header
+in a request can be used to tell the server what type of document the
+client would like to get. Many servers ignore this header, but when a
+server knows of various way to encode a resource, it can look at this
+header and send the one that the client prefers.</p>
+<p><a class=p_ident id="p_2apM0hNSSi" href="#p_2apM0hNSSi"></a>The URL <em>http://eloquentjavascript.net/author</em> is configured to
+respond with either plain text, HTML, or JSON, depending on what the
+client asks for. These formats are identified by the standardized
+<em>media types</em> <code>text/plain</code>, <code>text/html</code>, and <code>application/json</code>.</p>
+<p><a class=p_ident id="p_uUUGBBkyGq" href="#p_uUUGBBkyGq"></a>Send requests to fetch all three formats of this resource. Use the
+<code>setRequestHeader</code> method of your <code>XMLHttpRequest</code> object set the
+header named <code>Accept</code> to one of the media types given above. Make sure
+you set the header <em>after</em> calling <code>open</code>, but before calling <code>send</code>.</p>
+<p><a class=p_ident id="p_ydN7YyErvr" href="#p_ydN7YyErvr"></a>Finally, try asking for the media type <code>application/rainbows+unicorns</code>
+and see what happens.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_CfkOp8tkUe" href="#c_CfkOp8tkUe"></a><span class="cm-comment">// Your code here.</span></pre>
+<div class=solution><div class=solution-text>
+<p><a class=p_ident id="p_TNktXshv5h" href="#p_TNktXshv5h"></a>See the various examples of using an <code>XMLHttpRequest</code> in this chapter
+for an example of the method calls involved in making a request. You
+can use a synchronous request (by setting the third parameter to
+<code>open</code> to <code>false</code>) if you want.</p>
+<p><a class=p_ident id="p_rvMQauDbd6" href="#p_rvMQauDbd6"></a>Asking for a bogus media type will return a response with code 406
+“Not acceptable”, which is the code a server should return when it can
+not fulfill the <code>Accept</code> header.</p>
+</div></div>
+<h3 id="_waiting_for_multiple_promises">Waiting for multiple promises</h3>
+<p><a class=p_ident id="p_bjI0ituzCO" href="#p_bjI0ituzCO"></a>The <code>Promise</code> constructor has an <code>all</code> method which, given an array of
+promises, returns a promise that waits for all of them to finish, and
+then succeeds itself, yielding an array of result values. If any of
+the promises in the array fail, the promise returned by <code>all</code> fails
+too (with the failure value from the failing promise).</p>
+<p><a class=p_ident id="p_aWPI8r+IIn" href="#p_aWPI8r+IIn"></a>Try to implement something like this yourself, as a regular function
+called <code>all</code>.</p>
+<p><a class=p_ident id="p_n5BsvIT7F5" href="#p_n5BsvIT7F5"></a>Note that after a promise has succeeded or failed, it can not succeed
+or fail again, and further calls to the functions that resolve it are
+ignored. This can simplify the way you handle failure of your promise.</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_rh1VNWd1CQ" href="#c_rh1VNWd1CQ"></a><span class="cm-keyword">function</span> <span class="cm-variable">all</span>(<span class="cm-def">promises</span>) {
+  <span class="cm-keyword">return</span> <span class="cm-keyword">new</span> <span class="cm-variable">Promise</span>(<span class="cm-keyword">function</span>(<span class="cm-def">success</span>, <span class="cm-def">fail</span>) {
+    <span class="cm-comment">// Your code here.</span>
+  });
+}
+
+<span class="cm-comment">// Test code.</span>
+<span class="cm-variable">all</span>([], <span class="cm-keyword">function</span>(<span class="cm-def">array</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"This should be []:"</span>, <span class="cm-variable-2">array</span>);
+});
+<span class="cm-keyword">function</span> <span class="cm-variable">soon</span>(<span class="cm-def">val</span>) {
+  <span class="cm-keyword">return</span> <span class="cm-keyword">new</span> <span class="cm-variable">Promise</span>(<span class="cm-keyword">function</span>(<span class="cm-def">success</span>) {
+    <span class="cm-variable">setTimeout</span>(<span class="cm-keyword">function</span>() { <span class="cm-variable-2">success</span>(<span class="cm-variable-2">val</span>); },
+               <span class="cm-variable">Math</span>.<span class="cm-property">random</span>() <span class="cm-operator">*</span> <span class="cm-number">500</span>);
+  });
+}
+<span class="cm-variable">all</span>([<span class="cm-variable">soon</span>(<span class="cm-number">1</span>), <span class="cm-variable">soon</span>(<span class="cm-number">2</span>), <span class="cm-variable">soon</span>(<span class="cm-number">3</span>)]).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">array</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"This should be [1, 2, 3]:"</span>, <span class="cm-variable-2">array</span>);
+});
+<span class="cm-keyword">function</span> <span class="cm-variable">fail</span>() {
+  <span class="cm-keyword">return</span> <span class="cm-keyword">new</span> <span class="cm-variable">Promise</span>(<span class="cm-keyword">function</span>(<span class="cm-def">success</span>, <span class="cm-def">fail</span>) {
+    <span class="cm-variable-2">fail</span>(<span class="cm-keyword">new</span> <span class="cm-variable">Error</span>(<span class="cm-string">"boom"</span>));
+  });
+}
+<span class="cm-variable">all</span>([<span class="cm-variable">soon</span>(<span class="cm-number">1</span>), <span class="cm-variable">fail</span>(), <span class="cm-variable">soon</span>(<span class="cm-number">3</span>)]).<span class="cm-property">then</span>(<span class="cm-keyword">function</span>(<span class="cm-def">array</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"We should not get here"</span>);
+}, <span class="cm-keyword">function</span>(<span class="cm-def">error</span>) {
+  <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-string">"Failed with:"</span>, <span class="cm-variable-2">error</span>);
+});</pre>
+<div class=solution><div class=solution-text>
+<p><a class=p_ident id="p_lQoacAoALV" href="#p_lQoacAoALV"></a>The function passed to the <code>Promise</code> constructor will have to call
+<code>then</code> on each of the promises in the given array. When one of them
+succeeds, two things need to happen—the resulting value needs to be
+stored in the correct position of a result array, and we must check
+whether this was the last pending promise, and finish our own promise
+when it was.</p>
+<p><a class=p_ident id="p_gVL8VQtmdx" href="#p_gVL8VQtmdx"></a>The latter can be done with a counter, which is initialized to the
+length of the input array, and which we subtract one for every time a
+promise succeeds. When it reaches zero, we are done. Make sure you
+take the situation where the input array is empty (and thus no promise
+will ever resolve) into account.</p>
+<p><a class=p_ident id="p_xLxIRNCHYI" href="#p_xLxIRNCHYI"></a>Handling failure requires some though, but turns out to be extremely
+simple. Just pass the failure function of the wrapping promise to each
+of the promises in the array, so that a failure in one of them
+triggers failure of the whole wrapper.</p>
+</div></div>
+<nav>
+  <a href="16_canvas.html" title="previous chapter">⬅</a>
+  <a href="index.html" title="cover">⬆</a>
+  <a href="18_forms.html" title="next chapter">➡</a>
+</nav>
+</article>
