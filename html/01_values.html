@@ -102,9 +102,9 @@ JavaScript: простейшими типами значений и операт
 количество разных последовательностей бит, выделенных для чисел,
 конечно. Это похоже на число разрядов в карманном калькуляторе. При
 помощи, например, 8ми десятичный разрядов в калькуляторе, мы можем
-представить числа от 0 до 9999999999, т.е. 10<sup>8 разных чисел. Таким же
+представить числа от 0 до 99999999, т.е. 10<sup>8</sup> разных чисел. Таким же
 образом, если у нас есть 64 двоичных разряда, мы можем представить
-2</sup>64 разных числа. Что составляет около 18 квинтильонов (18 с 18
+2<sup>64</sup> разных числа. Что составляет около 18 квинтильонов (18 с 18
 нулями после). И это довольно много.</p>
 <p><a class=p_ident id="p_xmxlF1/swx" href="#p_xmxlF1/swx"></a>Раньше память компьютера была гораздо меньше, и люди использовали
 кусочки по восемь и шестнадцать бит для своих чисел. Тогда было легко
@@ -127,7 +127,7 @@ JavaScript. Эти же 64 бита хранят и отрицательные �
 можно также использовать экспоненциальную запись. Нужно добавить "e",
 и после нее записать показатель степени 10 для числа:</p>
 <pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_BcwYGRXGfX" href="#c_BcwYGRXGfX"></a><span class="cm-number">2.998e8</span></pre>
-<p><a class=p_ident id="p_vGEOlZMSB+" href="#p_vGEOlZMSB+"></a>Это равно 2.998 × 10^8 = 299800000.</p>
+<p><a class=p_ident id="p_TxNGw4yETa" href="#p_TxNGw4yETa"></a>Это равно 2.998 × 10<sup>8</sup> = 299800000.</p>
 <p><a class=p_ident id="p_eu3C1C9WdB" href="#p_eu3C1C9WdB"></a>Вычисления с целыми (integer) числами, меньшими чем упомянутые 9
 квадриллионов, гарантированно точны. К сожалению, вычисления с
 дробными числами чаще всего <em>не</em> точны. Как и число π (пи) не может
@@ -257,8 +257,19 @@ And this is the second</pre>
 записываются просто как эти английские слова:</p>
 <pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_mwuY1BbAsL" href="#c_mwuY1BbAsL"></a><span class="cm-atom">true</span>
 <span class="cm-atom">false</span></pre>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>У этих значений есть своя арифметика. Есть действия "не" (унарный оператор
+"!"), действие И (бинарный оператор "&amp;&amp;"), действие ИЛИ (бинарный
+оператор "||").</p>
+<pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_z27XxWmbbl" href="#c_z27XxWmbbl"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-operator">!</span><span class="cm-atom">true</span>)
+<span class="cm-comment">// → false</span>
+
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">||</span> <span class="cm-atom">true</span>)
+<span class="cm-comment">// → true</span>
+
+<span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-atom">false</span> <span class="cm-operator">&amp;&amp;</span> <span class="cm-atom">true</span>)
+<span class="cm-comment">// → false</span></pre>
 <h3 id="_comparisons">Comparisons</h3>
-<p><a class=p_ident id="p_gT1sB3xvAW" href="#p_gT1sB3xvAW"></a>Here is one way to produce boolean values:</p>
+<p><a class=p_ident id="p_2jmj7l5rSw" href="#p_2jmj7l5rSw"></a>Вот, например, способ, как можно создать логическое здачение:</p>
 <pre data-language="javascript" class="snippet cm-s-default"><a class=c_ident id="c_EmBjAFxLPS" href="#c_EmBjAFxLPS"></a><span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-number">3</span> <span class="cm-operator">></span> <span class="cm-number">2</span>)
 <span class="cm-comment">// → true</span>
 <span class="cm-variable">console</span>.<span class="cm-property">log</span>(<span class="cm-number">3</span> <span class="cm-operator">&lt;</span> <span class="cm-number">2</span>)
