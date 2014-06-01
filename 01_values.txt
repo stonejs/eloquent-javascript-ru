@@ -141,92 +141,91 @@ JavaScript. Эти же 64 бита хранят и отрицательные �
 
 Это равно 2.998 × 10^8 = 299800000.
 
-Вычисления с целыми числами.
+Вычисления с целыми (integer) числами, меньшими чем упомянутые 9
+квадриллионов, гарантированно точны. К сожалению, вычисления с
+дробными числами чаще всего _не_ точны. Как и число π (пи) не может
+быть точно выражено при помощи конечного числа десятичных разрядов,
+многие числа теряют точность, когда для их хранения доступны только 64
+бита. А жаль. Впрочем, это причиняет практические проблемы лишь в
+некоторых особенных ситуациях. Важно помнить об этом, и относиться к
+числам с дробной частью как к некоторым приближениям, а не как к
+точным значениям.
 
-Calculations with whole numbers (also called _((integer))s_) smaller
-than the aforementioned 9 quadrillion are guaranteed to always be
-precise. Unfortunately, calculations with fractional numbers are
-generally not. Just as π (pi) cannot be precisely expressed by a finite
-amount of decimal digits, many numbers lose some precision when only
-64 bits are available to store them. This is a shame, but it causes
-practical problems only in very specific situations. The important
-thing is to be aware of it and treat fractional digital numbers as
-approximations, not as precise values.
-
-=== Arithmetic ===
+=== Арифметика ===
 
 (((operator)))(((arithmetic)))(((addition)))(((multiplication)))
-The main thing to do with numbers is arithmetic. Arithmetic operations
-such as addition or multiplication take two number values and produce
-a new number from them. Here is what they look like in JavaScript:
+Основная вещь, которую можно делать с числами -- это
+арифметика. Арифметические операции, такие как сложение или умножение,
+принимают два численных значения и делают из них новое числовое
+значение. Вот как это может выглядеть в JavaScript:
 
 [source,javascript]
 ----
 100 + 4 * 11
 ----
 
-(((\* operator)))(((+ operator)))The “+” and “*” symbols are called
-_operators_. The first stands for addition, and the second stands for
-multiplication. Putting an operator between two values will
-(((application,of operators)))apply it to those values and produce a
-new value.
+(((\* operator)))(((+ operator)))Символы "+" и "*" называются
+_операторами_. Оператор "+" обозначает сложение, "*" --
+умножение. Написание оператора (((application,of operators)))применяет
+его к этим значениям и создает новое значение, с результатом
+соответствующего вычисления.
 
-(((parentheses)))Does the example mean “add 4 and 100, and multiply
-the result by 11”, or is the multiplication done before the adding?
-As you might have guessed, the multiplication happens first. But, as
-in mathematics, this can be changed by wrapping the addition in
-parentheses:
+(((parentheses)))Что обозначает приведенный выше пример, "сложить 4 и
+100, и умножить результат на 11", или умножение должно выполниться
+перед сложением? Как вы могли подумать, умножение выполняется
+первым. Но, как в математике, это можно изменить, окружив сложение в
+круглые скобки (да, бывают и другие скобки, и применяются они
+по-другому):
 
 [source,javascript]
 ----
 (100 + 4) * 11
 ----
 
-(((division)))(((subtraction)))(((- operator)))(((/ operator)))For
-subtraction, there is the “-” operator, and division can be done with
-the “/” operator.
+(((division)))(((subtraction)))(((- operator)))(((/ operator)))Для
+вычитания есть оператор "-", и есть оператор "/" для деления.
 
-When operators appear together without parentheses, the order in which
-they are applied is determined by the _((precedence))_ of the
-operators. The example shows that multiplication comes before
-addition. “/” has the same precedence as “*”. Likewise for “+” and
-“-”. When multiple operators with the same precedence appear next to
-each other (as in `1 - 2 + 1`), they are applied left to right.
+Когда операторы встречаются вместе без скобок, порядок, в котором
+производятся вычисления, определяется _((приоритетом вычисления))_
+операторов. В примере видно, что умножение происходит перед
+сложением. Приоритет "/" такой же, как у "*". Аналогично, приоритет
+"-" такой же, как у "+". Когда операторы с одинаковым приоритетом
+встречаются друг за другом (как в `1 - 2 + 1`), они применяются слева
+направо.
 
-These rules of precedence are not something you should worry about.
-When in doubt, just add parentheses.
+Эти правила приоритетов не должны вас сильно беспокоить. Когда есть
+сомнения, просто добавьте скобок.
 
-(((remainder operation)))(((% operator)))There is one more arithmetic
-operator, which you might not recognize. The “%” symbol is used to
-represent the _remainder_ operation. `X % Y` is the remainder of
-dividing `X` by `Y`. For example, `314 % 100` produces `14`, and `144
-% 12` gives `0`. Remainder's precedence is the same as that of
-multiplication and division. You'll often see this operator
-referred to as “modulo”, though technically, “remainder” is more
-accurate.
+(((remainder operation)))(((% operator)))Есть еще один арифметический
+оператор, который не так узнаваем как предыдущие. Оператор "%"
+вычисляет _остаток_ от деления. `X % Y` -- остаток от деления X на
+Y. Например, `123 % 100` дает `23`, `12 % 2` дает `0`. Приоритет
+_остатка_ такой же, как у умножения и деления.
 
-=== Special numbers ===
+=== Особенные числа ===
 
-There are three special values in JavaScript that are considered 
-numbers but don't behave like normal numbers.
+В JavaScript есть три особенных числовых значения, которые принадлежат
+к _числовому типу_, но ведут себя не как обычные, нормальные числа.
 
-The first two are `Infinity` and `-Infinity`, which
-represent the positive and negative infinities. `Infinity - 1` is
-still `Infinity`, and so on. Don't put too much trust in infinity-based 
-computation. It isn't mathematically solid, and it
-will quickly lead to our next special number: `NaN`.
+Первые два -- это `Infinity` (бесконечность) и `-Infinity`. Они,
+ожидаемо, представляют плюс- и минус- бесконечности. Например,
+`Infinity - 1` даст `Infinity`, как и `Infinity/2`, и подобное. Не
+полагайтесь сильно на такие "бесконечные" вычисления. Они не всегда
+математически обоснованы, и быстро приведут к третьему особенному
+числовому значению: `NaN`.
 
-`NaN` stands for “not a number”, even though it is a
-value of the number type. You'll get this result when you say try to
-calculate `0 / 0` (zero divided by zero), `Infinity - Infinity`, or 
-any number of other numeric operations that don't yield a precise, 
-meaningful result.
+`NaN` -- сокращенние от "Not a Number" -- "не-число". Хотя это
+значение принадлежит к _числовому типу_. Это значение можно получить,
+если вычислить `0 / 0` (ноль деленный на ноль), `Infinity - Infinity`,
+или из какого-то другого вычисления, связанного с числами, которое не
+производит разумный, значащий результат.
 
-== Strings ==
+== Строки ==
 
-(((String type)))(((textual data)))(((character)))The next basic data
-type is the _string_. Strings are used to represent text. They are
-written by enclosing their content in quotes:
+(((String type)))(((textual data)))(((character)))Следующий базовый
+тип значений (данных) -- _строка_. Этот, строковой, тип используется
+для хранения текста, текстовых данных. Строки записываются в как
+содержание строки, окруженное кавычками.
 
 [source,javascript]
 ----
@@ -234,67 +233,71 @@ written by enclosing their content in quotes:
 'Monkeys wave goodbye'
 ----
 
-(((quoting (of strings))))Both single and double quotes can be used to
-mark strings as long as the quotes at the start and the end of the
-string match.
+(((quoting (of strings))))Для кавычения строк можно использовать и
+двойные, и одинарные кавычки, но открывающая и закрывающая кавычка
+должны совпадать.
 
-(((escaping,in strings)))(((newline)))Almost anything can be put
-between quotes, and JavaScript will make a string value out of it. But
-a few characters are more difficult. You can imagine how putting quotes
-between quotes might be hard. _Newlines_ (the characters you get when you
-press `enter`) also can't be put between quotes. The string has to
-stay on a single line.
 
-(((backslash)))To be able to have such characters in a string, the
-following notation is used: whenever a backslash (“\”) is found
-inside quoted text, it indicates that the character after it has a
-special meaning. A quote that is preceded by a backslash will not end
-the string, but be part of it. When an “n” character occurs after a
-backslash, it is interpreted as a newline. Similarly, a “t” after a
-backslash means a tab character. Take the following string:
+
+(((escaping,in strings)))(((newline)))Между кавычек можно написать
+почти все, что угодно, и JavaScript из этого сделает строковое
+значение. Но есть несколько символов, с ними не все так
+просто. Как можете представить, сложно написать кавычку внутри
+кавычек. _Перевод строки_ (_newline_) (такой символы, которые получаются, когда
+нажимаете `enter`) так же не могут быть написаны между кавычек. Строка
+должна занимать, извините, каламбур, одну строку.
+
+(((backslash)))Чтобы было можно все же писать такие буквы в строках,
+используется вот такое обосзачение. Когда в закавыченном тексте
+встречается _обратный слэш_ ("\"), он обозначает, что следующий за ним
+символ -- особенный. Так, идущая после бэкслеша кавычка не завершит
+строку, а будет частью ее текстового значения; идущий после "\" символ
+"n" обозначает перевод строки, который так же становится частью этого
+строкового значения. Возмем такую строку:
 
 [source,javascript]
 ----
 "This is the first line\nAnd this is the second"
 ----
 
-The actual text contained is this:
+Но текст, который в ней содержится, на самом деле таков:
 
 ----
 This is the first line
 And this is the second
 ----
 
-There are, of course, situations where you want a backslash in a
-string to be just a backslash, not a special code. If two backslashes
-follow each other, they will collapse together, and only one will be
-left in the resulting string value. This is how the string “`A newline
-character is written like "\n"`” can be written:
+Конечно, есть случаи, когда нужно, чтобы "\" был просто собой, был
+частью текстового значения. Для этого... Вобщем, следующий после "\"
+символ "\" обозначает _обычный_ "\". Вот как может быть записана
+строка “`Перевод строки пишется так: "\n"`”
 
 [source,javascript]
 ----
-"A newline character is written like \"\\n\"."
+"Перевода строки пишется так: \"\\n\"."
 ----
 
-(((+ operator)))(((concatenation)))Strings cannot be divided,
-multiplied, or subtracted, but the “+” operator _can_ be used on them.
-It does not add, but it __concatenates__—it glues two strings together.
-The following line will produce the string `"concatenate"`:
+(((+ operator)))(((concatenation)))Строки не можем в арифметическом
+смысле делить, умножать, или вычитать, но оператор "+" может быть
+использован. Он вычисляет не сумму в арифметическом смысле, а
+__склеивает__ -- соединяет две строки в одну. Такая запись дает
+строковое значение "склеиваем":
 
 [source,javascript]
 ----
-"con" + "cat" + "e" + "nate"
+"с" + "кле" + "и" + "ваем"
 ----
 
-There are more ways of manipulating strings, which we will discuss
-when we get to methods in Chapter 4.
+Есть другие способы делать действия со строками, мы их обсудим, когда
+доберемся до _методов_ в главе 4.
 
-== Unary operators ==
+== Унарные операторы ==
 
-(((operator)))(((typeof operator)))(((type)))Not all operators are
-symbols. Some are written as words. One example is the `typeof`
-operator, which produces a string value naming the type of the value
-you give it.
+(((operator)))(((typeof operator)))(((type)))Не все операторы -
+одиночные символы. Некоторые пишутся как слова. Например, оператор
+`typeof`, который дает строковое значение с названием типа. Т.е. вы
+ему даете некоторое значение, а он вам -- строку с названием типа
+этого значения.
 
 [source,javascript]
 ----
@@ -304,16 +307,17 @@ console.log(typeof "x")
 // → string
 ----
 
-We will use `console.log` in example code to indicate that we want to
-see the result of evaluating something. When you run such code, the
-value produced should be shown on the screen, though how it appears will
-depend on the JavaScript environment you use to run it.
+Мы будем использовать `console.log` в примерах, чтобы увидеть
+результат вычисления. Когда вы выполняете такой код, полученное
+значение будет показано на экране. Хотя то, как оно будет показано,
+зависит от того, в каком окружении JavaScript вы выполняете этот код.
 
-(((- operator)))(((binary operator)))(((unary operator)))The other
-operators we saw all operated on two values, `typeof` takes only one.
-Operators that use two values are called _binary_ operators, while
-those that take one are called _unary_ operators. The minus operator
-can be used both as a binary operator and a unary operator:
+(((- operator)))(((binary operator)))(((unary operator)))Другие
+операторы, которые мы видели, работают на двух значениях. `typeof` же
+принимает только одно значение. Опереторы, которые принимают два
+значения, называются _бинарными_, а те, которые принимают одно
+значение, называются _унарными_. Оператор "-" (минус) может быть
+использован и как бинарный, и как унарный:
 
 [source,javascript]
 ----
@@ -321,13 +325,20 @@ console.log(- (10 - 2))
 // → -8
 ----
 
-== Boolean values ==
+== Логические (Boolean) значения ==
 
-(((Boolean type)))(((operator)))(((true)))(((false)))Often, you will
-need a value that simply distinguishes between two possiblities, like “yes”
-and “no”, or “on” and “off”. For this, JavaScript has a _boolean_ type,
-which has just two values: true and false (which are written
-simply as those words).
+(((Boolean type)))(((operator)))(((true)))(((false)))Часто может
+понадобится значение, которое различает между двумя возможностями,
+такими как "да" и "нет", или "вкл" и "выкл". Для этого в JavaScript
+есть _логический_ тип (_boolean_), у которого есть только два
+возможных значения: true (правда) и false (ложь), и эти значения
+записываются просто как эти английские слова:
+
+[source,javascript]
+----
+true
+false
+----
 
 === Comparisons ===
 
