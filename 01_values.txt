@@ -340,9 +340,25 @@ true
 false
 ----
 
+У этих значений есть своя арифметика. Есть действия "не" (унарный оператор
+"!"), действие И (бинарный оператор "&&"), действие ИЛИ (бинарный
+оператор "||").
+
+[source,javascript]
+----
+console.log(!true)
+// → false
+
+console.log(false || true)
+// → true
+
+console.log(false && true)
+// → false
+----
+
 === Comparisons ===
 
-Here is one way to produce boolean values:
+Вот, например, способ, как можно создать логическое здачение:
 
 [source,javascript]
 ----
